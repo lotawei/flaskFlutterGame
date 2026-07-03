@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TraceHeaders",
+  "description": "跨端链路追踪 HTTP Header 约定",
+  "type": "object",
+  "properties": {
+    "X-Trace-Id": {
+      "type": "string",
+      "description": "全链路追踪 ID，客户端生成并在后续调用中透传"
+    },
+    "X-Request-Id": {
+      "type": "string",
+      "description": "单次 HTTP 请求 ID，由服务端生成并在响应头回写"
+    },
+    "X-Span-Id": {
+      "type": "string",
+      "description": "可选，标识客户端发起的子步骤"
+    }
+  },
+  "required": ["X-Trace-Id"]
+}
