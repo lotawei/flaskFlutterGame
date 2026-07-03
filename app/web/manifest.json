@@ -1,11 +1,11 @@
 {
-    "name": "meme_game",
-    "short_name": "meme_game",
+    "name": "搞事事",
+    "short_name": "搞事事",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#E8E8E8",
+    "theme_color": "#7C4DFF",
+    "description": "抽象热梗 2D 像素闯关",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

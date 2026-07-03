@@ -11,7 +11,7 @@ class HomeView extends GetView<HomeController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('梗次元闯关 · 基座'),
+        title: const Text('搞事事 · 基座'),
         actions: <Widget>[
           IconButton(
             onPressed: controller.loadManifest,

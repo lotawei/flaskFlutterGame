@@ -53,6 +53,6 @@ void main() {
     await tester.pumpWidget(
       const GetMaterialApp(home: HomeView()),
     );
-    expect(find.textContaining('梗次元闯关'), findsOneWidget);
+    expect(find.textContaining('搞事事'), findsOneWidget);
   });
 }
