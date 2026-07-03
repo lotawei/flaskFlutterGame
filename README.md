@@ -13,6 +13,8 @@ Flame 2D 像素风闯关 + Flask 热梗内容中台。
 
 ## 快速开始
 
+**试玩闯关：** 见 [docs/playtest.md](docs/playtest.md)
+
 详见 [docs/observability.md](docs/observability.md)
 
 ## 架构说明

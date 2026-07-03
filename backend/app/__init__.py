@@ -8,6 +8,7 @@ from flask_cors import CORS
 
 from app.api.content import content_bp
 from app.api.health import health_bp
+from app.api.levels import levels_bp
 from app.config import AppConfig, load_config
 from app.middleware.request_context import register_request_context_middleware
 from app.observability.logger import get_logger, log_event, setup_logging
@@ -24,6 +25,7 @@ def create_app(config: AppConfig | None = None) -> Flask:
     register_request_context_middleware(app)
     app.register_blueprint(health_bp)
     app.register_blueprint(content_bp)
+    app.register_blueprint(levels_bp)
     startup_logger = get_logger("app.startup")
     log_event(
         startup_logger,

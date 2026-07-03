@@ -34,6 +34,8 @@ dependencies:
   get: ^4.7.2
   dio: ^5.8.0+1
   uuid: ^4.5.1
+  flame: ^1.37.0
+  path_provider: ^2.1.6
 
 dev_dependencies:
   flutter_test:
@@ -67,6 +69,8 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icon/app_icon.png
+    - assets/levels/
+    - assets/levels/demo_haqi.json
 
   # To add assets to your application, add an assets section, like this:
   # assets:

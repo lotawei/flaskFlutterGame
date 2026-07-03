@@ -32,6 +32,10 @@ class HomeController extends GetxController {
     }
   }
 
+  void startDemoLevel() {
+    Get.toNamed<void>('/gameplay?levelId=demo_haqi');
+  }
+
   Future<void> loadManifest() async {
     isLoading.value = true;
     hasError.value = false;

@@ -2,8 +2,12 @@ import 'package:get/get.dart';
 import 'package:meme_game/core/config/app_config.dart';
 import 'package:meme_game/core/network/api_client.dart';
 import 'package:meme_game/core/observability/app_logger.dart';
+import 'package:meme_game/features/gameplay/binding.dart';
+import 'package:meme_game/features/gameplay/view.dart';
 import 'package:meme_game/features/home/binding.dart';
 import 'package:meme_game/features/home/view.dart';
+import 'package:meme_game/features/result/binding.dart';
+import 'package:meme_game/features/result/view.dart';
 
 /// 应用路由与全局依赖。
 class AppModule {
@@ -30,6 +34,16 @@ class AppModule {
           name: '/',
           page: () => const HomeView(),
           binding: HomeBinding(),
+        ),
+        GetPage<dynamic>(
+          name: '/gameplay',
+          page: () => const GameplayView(),
+          binding: GameplayBinding(),
+        ),
+        GetPage<dynamic>(
+          name: '/result',
+          page: () => const ResultView(),
+          binding: ResultBinding(),
         ),
       ];
 }
