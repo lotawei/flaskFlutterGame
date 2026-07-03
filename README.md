@@ -19,4 +19,6 @@ Flame 2D 像素风闯关 + Flask 热梗内容中台。
 
 ## 架构说明
 
-详见 [docs/architecture.md](docs/architecture.md)
+- [docs/architecture.md](docs/architecture.md)
+- [docs/art-agent.md](docs/art-agent.md) — 美术智能体并行规范
+- [docs/art-direction.md](docs/art-direction.md) — 视觉方向摘要

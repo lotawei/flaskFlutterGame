@@ -2,60 +2,116 @@ import 'dart:ui';
 
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:flame/sprite.dart';
 import 'package:meme_game/core/engine/game_constants.dart';
 import 'package:meme_game/core/engine/input/game_input_state.dart';
+import 'package:meme_game/core/engine/sprites/sprite_registry.dart';
 
-/// 平台碰撞体。
+/// 玩家动画状态。
+enum PlayerState {
+  idle,
+  run,
+  jump,
+}
+
+/// 天空背景层（视差平铺）。
+class SkyBackgroundComponent extends PositionComponent {
+  SkyBackgroundComponent({
+    required this.worldWidth,
+    required this.worldHeight,
+    required this.spriteRegistry,
+  }) : super(priority: -10);
+
+  final double worldWidth;
+  final double worldHeight;
+  final SpriteRegistry spriteRegistry;
+  Sprite? _skySprite;
+
+  @override
+  Future<void> onLoad() async {
+    _skySprite = spriteRegistry.buildSprite('bg_sky');
+    size = Vector2(worldWidth, worldHeight);
+  }
+
+  @override
+  void render(Canvas canvas) {
+    if (_skySprite == null) {
+      final Paint paint = Paint()..color = const Color(0xFFB3E5FC);
+      canvas.drawRect(size.toRect(), paint);
+      return;
+    }
+    const double tileWidth = 320;
+    const double tileHeight = 180;
+    for (double x = 0; x < size.x; x += tileWidth) {
+      for (double y = 0; y < size.y; y += tileHeight) {
+        _skySprite!.render(
+          canvas,
+          position: Vector2(x, y),
+          size: Vector2(tileWidth, tileHeight),
+        );
+      }
+    }
+  }
+}
+
+/// 平台碰撞体（瓦片贴图）。
 class PlatformComponent extends PositionComponent with CollisionCallbacks {
   PlatformComponent({
     required super.position,
     required super.size,
-    required this.color,
+    required this.isGround,
+    required this.spriteRegistry,
   });
 
-  final Color color;
+  final bool isGround;
+  final SpriteRegistry spriteRegistry;
+  Sprite? _tileSprite;
 
   @override
   Future<void> onLoad() async {
+    _tileSprite = spriteRegistry.buildSprite(
+      isGround ? 'tile_ground' : 'tile_platform',
+    );
     add(RectangleHitbox());
   }
 
   @override
   void render(Canvas canvas) {
-    final Paint paint = Paint()..color = color;
-    canvas.drawRect(size.toRect(), paint);
-    final Paint border = Paint()
-      ..color = const Color(0xFF1A1A1A)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-    canvas.drawRect(size.toRect(), border);
+    if (_tileSprite == null) {
+      final Paint paint = Paint()
+        ..color = isGround ? const Color(0xFF66BB6A) : const Color(0xFF8D6E63);
+      canvas.drawRect(size.toRect(), paint);
+      return;
+    }
+    const double tileSize = 32;
+    for (double x = 0; x < size.x; x += tileSize) {
+      for (double y = 0; y < size.y; y += tileSize) {
+        _tileSprite!.render(
+          canvas,
+          position: Vector2(x, y),
+          size: Vector2(tileSize, tileSize),
+        );
+      }
+    }
   }
 }
 
 /// 可收集金币。
-class CoinComponent extends PositionComponent with CollisionCallbacks {
+class CoinComponent extends SpriteAnimationComponent with CollisionCallbacks {
   CoinComponent({
     required super.position,
+    required this.spriteRegistry,
     required this.onCollected,
   }) : super(size: Vector2.all(20));
 
+  final SpriteRegistry spriteRegistry;
   final void Function() onCollected;
   bool _isCollected = false;
 
   @override
   Future<void> onLoad() async {
+    animation = spriteRegistry.buildAnimation('coin', 'spin');
     add(CircleHitbox());
-  }
-
-  @override
-  void render(Canvas canvas) {
-    if (_isCollected) {
-      return;
-    }
-    final Paint paint = Paint()..color = const Color(0xFFFFD54F);
-    canvas.drawCircle(Offset(size.x / 2, size.y / 2), 10, paint);
-    final Paint shine = Paint()..color = const Color(0xFFFFF59D);
-    canvas.drawCircle(const Offset(8, 8), 3, shine);
   }
 
   void collect() {
@@ -69,31 +125,21 @@ class CoinComponent extends PositionComponent with CollisionCallbacks {
 }
 
 /// 终点旗子。
-class GoalComponent extends PositionComponent with CollisionCallbacks {
+class GoalComponent extends SpriteComponent with CollisionCallbacks {
   GoalComponent({
     required super.position,
+    required this.spriteRegistry,
     required this.onReached,
   }) : super(size: Vector2(24, 48));
 
+  final SpriteRegistry spriteRegistry;
   final void Function() onReached;
   bool _isReached = false;
 
   @override
   Future<void> onLoad() async {
+    sprite = spriteRegistry.buildSprite('goal_flag');
     add(RectangleHitbox());
-  }
-
-  @override
-  void render(Canvas canvas) {
-    final Paint pole = Paint()..color = const Color(0xFF424242);
-    canvas.drawRect(Rect.fromLTWH(10, 0, 4, size.y), pole);
-    final Paint flag = Paint()..color = const Color(0xFFE91E63);
-    final Path path = Path()
-      ..moveTo(14, 6)
-      ..lineTo(24, 12)
-      ..lineTo(14, 18)
-      ..close();
-    canvas.drawPath(path, flag);
   }
 
   void reach() {
@@ -106,16 +152,19 @@ class GoalComponent extends PositionComponent with CollisionCallbacks {
 }
 
 /// 玩家角色。
-class PlayerComponent extends PositionComponent with CollisionCallbacks {
+class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
+    with CollisionCallbacks {
   PlayerComponent({
     required this.inputState,
     required this.onFellOff,
     required this.worldHeight,
+    required this.spriteRegistry,
   }) : super(size: Vector2(28, 28));
 
   final GameInputState inputState;
   final void Function() onFellOff;
   final double worldHeight;
+  final SpriteRegistry spriteRegistry;
 
   Vector2 velocity = Vector2.zero();
   bool isOnGround = false;
@@ -123,7 +172,21 @@ class PlayerComponent extends PositionComponent with CollisionCallbacks {
 
   @override
   Future<void> onLoad() async {
+    final SpriteAnimation? idle =
+        spriteRegistry.buildAnimation('player', 'idle');
+    final SpriteAnimation? run = spriteRegistry.buildAnimation('player', 'run');
+    final SpriteAnimation? jump =
+        spriteRegistry.buildAnimation('player', 'jump');
+    if (idle != null && run != null && jump != null) {
+      animations = <PlayerState, SpriteAnimation>{
+        PlayerState.idle: idle,
+        PlayerState.run: run,
+        PlayerState.jump: jump,
+      };
+      current = PlayerState.idle;
+    }
     add(RectangleHitbox());
+    await super.onLoad();
   }
 
   @override
@@ -132,6 +195,7 @@ class PlayerComponent extends PositionComponent with CollisionCallbacks {
     isOnGround = false;
     _applyHorizontalInput();
     _applyJumpInput();
+    _updateAnimationState();
     velocity.y += GameConstants.gravity * dt;
     if (velocity.y > GameConstants.maxFallSpeed) {
       velocity.y = GameConstants.maxFallSpeed;
@@ -167,6 +231,28 @@ class PlayerComponent extends PositionComponent with CollisionCallbacks {
     }
   }
 
+  void _updateAnimationState() {
+    if (animations == null || animations!.isEmpty) {
+      return;
+    }
+    if (!isOnGround) {
+      current = PlayerState.jump;
+      return;
+    }
+    if (inputState.moveLeft) {
+      scale.x = -1;
+      current = PlayerState.run;
+      return;
+    }
+    if (inputState.moveRight) {
+      scale.x = 1;
+      current = PlayerState.run;
+      return;
+    }
+    scale.x = 1;
+    current = PlayerState.idle;
+  }
+
   @override
   void onCollisionStart(
     Set<Vector2> intersectionPoints,
@@ -192,8 +278,9 @@ class PlayerComponent extends PositionComponent with CollisionCallbacks {
     final double playerBottom = position.y + size.y;
     final double platformTop = platform.position.y;
     final bool isFalling = velocity.y >= 0;
-    final bool landingOnTop =
-        isFalling && playerBottom - platformTop < 18 && position.y < platform.position.y;
+    final bool landingOnTop = isFalling &&
+        playerBottom - platformTop < 18 &&
+        position.y < platform.position.y;
     if (landingOnTop) {
       position.y = platformTop - size.y;
       velocity.y = 0;
@@ -206,19 +293,5 @@ class PlayerComponent extends PositionComponent with CollisionCallbacks {
       position.y = platformBottom;
       velocity.y = 0;
     }
-  }
-
-  @override
-  void render(Canvas canvas) {
-    final Paint body = Paint()..color = const Color(0xFF7C4DFF);
-    canvas.drawRect(size.toRect(), body);
-    final Paint face = Paint()..color = const Color(0xFF1A1A1A);
-    canvas.drawCircle(const Offset(9, 11), 2.5, face);
-    canvas.drawCircle(const Offset(19, 11), 2.5, face);
-    final Paint mouth = Paint()
-      ..color = const Color(0xFF1A1A1A)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-    canvas.drawLine(const Offset(8, 20), const Offset(20, 20), mouth);
   }
 }

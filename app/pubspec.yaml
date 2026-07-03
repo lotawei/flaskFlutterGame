@@ -71,6 +71,11 @@ flutter:
     - assets/icon/app_icon.png
     - assets/levels/
     - assets/levels/demo_haqi.json
+    - assets/images/
+    - assets/images/sprites/player/
+    - assets/images/sprites/collectibles/
+    - assets/images/sprites/environment/
+    - assets/images/backgrounds/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

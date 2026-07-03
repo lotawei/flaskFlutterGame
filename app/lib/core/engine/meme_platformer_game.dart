@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:meme_game/core/engine/components/game_components.dart';
 import 'package:meme_game/core/engine/game_constants.dart';
 import 'package:meme_game/core/engine/input/game_input_state.dart';
+import 'package:meme_game/core/engine/sprites/sprite_registry.dart';
 import 'package:meme_game/core/level/level_model.dart';
 import 'package:meme_game/core/observability/app_logger.dart';
 
@@ -22,6 +23,7 @@ class MemePlatformerGame extends FlameGame
     required this.level,
     required this.inputState,
     required this.logger,
+    required this.spriteRegistry,
     required this.onCoinCollected,
     required this.onGameEnded,
   });
@@ -29,6 +31,7 @@ class MemePlatformerGame extends FlameGame
   final LevelModel level;
   final GameInputState inputState;
   final AppLogger logger;
+  final SpriteRegistry spriteRegistry;
   final void Function(int totalCoins) onCoinCollected;
   final void Function(GameEndReason reason, int coins, double seconds) onGameEnded;
 
@@ -52,8 +55,9 @@ class MemePlatformerGame extends FlameGame
 
   void setPaused(bool value) {
     _isPaused = value;
-    pauseEngine();
-    if (!value) {
+    if (value) {
+      pauseEngine();
+    } else {
       resumeEngine();
     }
   }
@@ -61,12 +65,21 @@ class MemePlatformerGame extends FlameGame
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+    await spriteRegistry.preloadP0Assets();
     camera.viewfinder.anchor = Anchor.topLeft;
+    add(
+      SkyBackgroundComponent(
+        worldWidth: level.worldWidth,
+        worldHeight: level.worldHeight,
+        spriteRegistry: spriteRegistry,
+      ),
+    );
     _buildLevel();
     _player = PlayerComponent(
       inputState: inputState,
       onFellOff: () => _finishGame(GameEndReason.fellOff),
       worldHeight: level.worldHeight,
+      spriteRegistry: spriteRegistry,
     );
     _player.position = Vector2(
       level.playerSpawn.x * level.tileSize.toDouble() + 2,
@@ -77,30 +90,32 @@ class MemePlatformerGame extends FlameGame
     logger.info(
       module: 'core.engine',
       event: 'game.level.load.completed',
-      message: '关卡加载完成',
+      message: '关卡加载完成（含 P0 精灵）',
       extra: <String, Object?>{
         'level_id': level.levelId,
         'coin_count': _totalCoins,
+        'sprites_loaded': spriteRegistry.isLoaded,
       },
     );
   }
 
   void _buildLevel() {
     for (final LevelRectModel rect in level.platforms) {
-      final PlatformComponent platform = PlatformComponent(
-        position: Vector2(
-          rect.x * level.tileSize.toDouble(),
-          rect.y * level.tileSize.toDouble(),
+      final bool isGround = rect.y >= level.heightTiles - 2;
+      add(
+        PlatformComponent(
+          position: Vector2(
+            rect.x * level.tileSize.toDouble(),
+            rect.y * level.tileSize.toDouble(),
+          ),
+          size: Vector2(
+            rect.w * level.tileSize.toDouble(),
+            rect.h * level.tileSize.toDouble(),
+          ),
+          isGround: isGround,
+          spriteRegistry: spriteRegistry,
         ),
-        size: Vector2(
-          rect.w * level.tileSize.toDouble(),
-          rect.h * level.tileSize.toDouble(),
-        ),
-        color: rect.y >= level.heightTiles - 2
-            ? const Color(0xFF66BB6A)
-            : const Color(0xFF8D6E63),
       );
-      add(platform);
     }
     for (final LevelPointModel coin in level.coins) {
       _totalCoins += 1;
@@ -110,6 +125,7 @@ class MemePlatformerGame extends FlameGame
             coin.x * level.tileSize.toDouble() + 6,
             coin.y * level.tileSize.toDouble() + 6,
           ),
+          spriteRegistry: spriteRegistry,
           onCollected: _handleCoinCollected,
         ),
       );
@@ -120,6 +136,7 @@ class MemePlatformerGame extends FlameGame
           level.goal.x * level.tileSize.toDouble(),
           level.goal.y * level.tileSize.toDouble(),
         ),
+        spriteRegistry: spriteRegistry,
         onReached: () => _finishGame(GameEndReason.victory),
       ),
     );
@@ -160,7 +177,8 @@ class MemePlatformerGame extends FlameGame
   }
 
   void _updateCamera() {
-    final double targetX = (_player.position.x + _player.size.x / 2) - size.x / 2;
+    final double targetX =
+        (_player.position.x + _player.size.x / 2) - size.x / 2;
     final double maxX = level.worldWidth - size.x;
     final double clampedX = targetX.clamp(0, maxX > 0 ? maxX : 0);
     final double currentX = camera.viewfinder.position.x;

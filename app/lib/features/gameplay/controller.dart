@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:meme_game/core/engine/input/game_input_state.dart';
 import 'package:meme_game/core/engine/meme_platformer_game.dart';
+import 'package:meme_game/core/engine/sprites/sprite_registry.dart';
 import 'package:meme_game/core/level/level_model.dart';
 import 'package:meme_game/core/observability/app_logger.dart';
 import 'package:meme_game/core/observability/trace_context.dart';
@@ -31,6 +32,7 @@ class GameplayController extends GetxController {
   MemePlatformerGame? game;
   late TraceContext traceContext;
   String levelId = 'demo_haqi';
+  final SpriteRegistry spriteRegistry = SpriteRegistry();
 
   @override
   void onInit() {
@@ -63,6 +65,7 @@ class GameplayController extends GetxController {
         level: loadedLevel,
         inputState: inputState,
         logger: _logger,
+        spriteRegistry: spriteRegistry,
         onCoinCollected: (int coins) {
           collectedCoins.value = coins;
         },

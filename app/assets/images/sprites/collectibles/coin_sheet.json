@@ -1,0 +1,9 @@
+{
+  "sheet": "coin_sheet.png",
+  "frameWidth": 20,
+  "frameHeight": 20,
+  "anchor": { "x": 0.5, "y": 0.5 },
+  "animations": {
+    "spin": { "row": 0, "frameCount": 6, "fps": 10, "loop": true }
+  }
+}
