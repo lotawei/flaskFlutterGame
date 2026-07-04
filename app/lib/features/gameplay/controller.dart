@@ -5,18 +5,29 @@ import 'package:meme_game/core/engine/sprites/sprite_registry.dart';
 import 'package:meme_game/core/level/level_model.dart';
 import 'package:meme_game/core/observability/app_logger.dart';
 import 'package:meme_game/core/observability/trace_context.dart';
+import 'package:meme_game/core/level/level_rule_evaluator.dart';
+import 'package:meme_game/core/level/level_rule_model.dart';
 import 'package:meme_game/data/repositories/level_repository.dart';
+import 'package:meme_game/data/repositories/progress_repository.dart';
+import 'package:meme_game/features/auth/auth_controller.dart';
 
 /// 闯关页控制器。
 class GameplayController extends GetxController {
   GameplayController({
     required LevelRepository levelRepository,
+    required ProgressRepository progressRepository,
+    required AuthController authController,
     required AppLogger logger,
   })  : _levelRepository = levelRepository,
+        _progressRepository = progressRepository,
+        _authController = authController,
         _logger = logger;
 
   final LevelRepository _levelRepository;
+  final ProgressRepository _progressRepository;
+  final AuthController _authController;
   final AppLogger _logger;
+  final LevelRuleEvaluator _ruleEvaluator = LevelRuleEvaluator();
 
   final GameInputState inputState = GameInputState();
   final RxBool isLoading = true.obs;
@@ -117,7 +128,55 @@ class GameplayController extends GetxController {
     GameEndReason reason,
     int coins,
     double seconds,
-  ) {
+  ) async {
+    final LevelModel? currentLevel = level;
+    final bool isVictory = reason == GameEndReason.victory;
+    int stars = 0;
+    int defeatedEnemies = game?.defeatedEnemies ?? 0;
+    if (currentLevel != null && isVictory) {
+      final StarRatingResult rating = _ruleEvaluator.evaluateStars(
+        starRules: currentLevel.starRules,
+        context: LevelRunContext(
+          elapsedSeconds: seconds,
+          collectedCoins: coins,
+          totalCoins: currentLevel.coins.length,
+          defeatedEnemies: defeatedEnemies,
+          totalEnemies: currentLevel.enemies.length,
+          damageTaken: reason == GameEndReason.hitByEnemy ? 1 : 0,
+          hasReachedGoal: true,
+          isRealGoal: true,
+        ),
+      );
+      stars = rating.stars;
+    }
+    String? syncMessage;
+    int? syncedTotalStars;
+    if (_authController.isLoggedIn.value) {
+      try {
+        final result = await _progressRepository.submitSession(
+          traceContext: traceContext,
+          levelId: levelId,
+          reason: reason.name,
+          coins: coins,
+          totalCoins: totalCoins.value,
+          seconds: seconds,
+          stars: stars,
+          defeatedEnemies: defeatedEnemies,
+        );
+        syncedTotalStars = result.totalStars;
+        syncMessage = '进度已同步 · 本关 ${result.levelProgress.bestStars} 星';
+        await _authController.refreshProgress(traceContext: traceContext);
+      } catch (err) {
+        syncMessage = '进度同步失败（可稍后重试）';
+        _logger.warn(
+          module: 'features.gameplay',
+          event: 'game.session.sync.failed',
+          message: '对局上报失败',
+          traceContext: traceContext,
+          extra: <String, Object?>{'error_message': err.toString()},
+        );
+      }
+    }
     Get.offNamed(
       '/result',
       arguments: <String, Object?>{
@@ -127,7 +186,11 @@ class GameplayController extends GetxController {
         'coins': coins,
         'totalCoins': totalCoins.value,
         'seconds': seconds,
+        'stars': stars,
         'traceId': traceContext.traceId,
+        'syncMessage': syncMessage,
+        'syncedTotalStars': syncedTotalStars,
+        'isLoggedIn': _authController.isLoggedIn.value,
       },
     );
   }

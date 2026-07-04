@@ -5,13 +5,17 @@ import 'package:meme_game/core/network/api_client.dart';
 import 'package:meme_game/core/observability/app_logger.dart';
 import 'package:meme_game/core/observability/trace_context.dart';
 import 'package:meme_game/data/repositories/content_repository.dart';
+import 'package:meme_game/features/auth/auth_controller.dart';
 import 'package:meme_game/features/home/controller.dart';
 import 'package:meme_game/features/home/view.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 void main() {
-  setUp(() {
+  setUp(() async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
     Get.reset();
-    AppModule.init();
+    await AppModule.init();
     final AppLogger logger = Get.find<AppLogger>();
     final ApiClient apiClient = Get.find<ApiClient>();
     Get.lazyPut<HomeController>(
@@ -20,6 +24,7 @@ void main() {
           apiClient: apiClient,
           logger: logger,
         ),
+        authController: Get.find<AuthController>(),
         logger: logger,
         shouldAutoLoad: false,
       ),

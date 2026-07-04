@@ -7,6 +7,7 @@ from typing import Any
 
 from flask import Flask, g, request
 
+from app.auth.decorators import resolve_user_from_request
 from app.observability.context import RequestContext, generate_id, set_request_context
 from app.observability.logger import get_logger, log_event
 
@@ -32,6 +33,10 @@ def register_request_context_middleware(app: Flask) -> None:
         g.request_started_at = time.perf_counter()
         g.trace_id = trace_id
         g.request_id = request_id
+        current_user = resolve_user_from_request()
+        if current_user is not None:
+            g.current_user = current_user
+            g.user_id = current_user["user_id"]
         log_event(
             access_logger,
             logging.INFO,
@@ -39,6 +44,7 @@ def register_request_context_middleware(app: Flask) -> None:
             f"收到请求 {request.method} {request.path}",
             query=dict(request.args),
             content_length=request.content_length,
+            user_id=getattr(g, "user_id", None),
         )
 
     @app.after_request

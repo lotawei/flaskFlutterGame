@@ -9,8 +9,12 @@ class ResultController extends GetxController {
   final RxInt coins = 0.obs;
   final RxInt totalCoins = 0.obs;
   final RxDouble seconds = 0.0.obs;
+  final RxInt stars = 0.obs;
   final RxString traceId = ''.obs;
   final RxString memeQuote = ''.obs;
+  final RxString syncMessage = ''.obs;
+  final RxnInt syncedTotalStars = RxnInt();
+  final RxBool isLoggedIn = false.obs;
 
   @override
   void onInit() {
@@ -23,7 +27,11 @@ class ResultController extends GetxController {
     coins.value = args?['coins'] as int? ?? 0;
     totalCoins.value = args?['totalCoins'] as int? ?? 0;
     seconds.value = (args?['seconds'] as num?)?.toDouble() ?? 0;
+    stars.value = args?['stars'] as int? ?? 0;
     traceId.value = args?['traceId'] as String? ?? '';
+    syncMessage.value = args?['syncMessage'] as String? ?? '';
+    syncedTotalStars.value = args?['syncedTotalStars'] as int?;
+    isLoggedIn.value = args?['isLoggedIn'] as bool? ?? false;
     final int seed = DateTime.now().millisecondsSinceEpoch;
     if (isVictory) {
       memeQuote.value = MemeQuotes.pickVictoryQuote(seed);

@@ -63,6 +63,38 @@ class ResultView extends GetView<ResultController> {
                 label: '用时',
                 value: '${controller.seconds.value.toStringAsFixed(1)} 秒',
               ),
+              if (controller.isVictory)
+                _StatRow(
+                  label: '本局三星',
+                  value: '${'★' * controller.stars.value}${'☆' * (3 - controller.stars.value)}',
+                ),
+              Obx(
+                () => controller.syncMessage.value.isEmpty
+                    ? const SizedBox.shrink()
+                    : _StatRow(
+                        label: '账号同步',
+                        value: controller.syncMessage.value,
+                      ),
+              ),
+              Obx(
+                () => controller.syncedTotalStars.value == null
+                    ? const SizedBox.shrink()
+                    : _StatRow(
+                        label: '账号总星',
+                        value: '${controller.syncedTotalStars.value}',
+                      ),
+              ),
+              Obx(
+                () => controller.isLoggedIn.value
+                    ? const SizedBox.shrink()
+                    : const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          '登录后可同步进度到云端',
+                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                        ),
+                      ),
+              ),
               _StatRow(
                 label: 'trace_id',
                 value: controller.traceId.value,

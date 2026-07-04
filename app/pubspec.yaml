@@ -36,6 +36,7 @@ dependencies:
   uuid: ^4.5.1
   flame: ^1.37.0
   path_provider: ^2.1.6
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:

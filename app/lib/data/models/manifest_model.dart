@@ -1,3 +1,5 @@
+import 'package:meme_game/data/models/auth_model.dart';
+
 /// 梗包 manifest 数据模型。
 class MemePackModel {
   MemePackModel({
@@ -37,14 +39,17 @@ class ManifestModel {
     required this.schemaVersion,
     required this.serverVersion,
     required this.packs,
+    this.user,
   });
 
   final int schemaVersion;
   final String serverVersion;
   final List<MemePackModel> packs;
+  final UserSummaryModel? user;
 
   factory ManifestModel.fromJson(Map<String, dynamic> json) {
     final List<dynamic> rawPacks = json['packs'] as List<dynamic>? ?? <dynamic>[];
+    final Map<String, dynamic>? rawUser = json['user'] as Map<String, dynamic>?;
     return ManifestModel(
       schemaVersion: json['schema_version'] as int? ?? 0,
       serverVersion: json['server_version'] as String? ?? '',
@@ -52,6 +57,7 @@ class ManifestModel {
           .whereType<Map<String, dynamic>>()
           .map(MemePackModel.fromJson)
           .toList(),
+      user: rawUser == null ? null : UserSummaryModel.fromJson(rawUser),
     );
   }
 }

@@ -65,6 +65,8 @@ class MemePlatformerGame extends FlameGame
 
   int get totalCoins => _totalCoins;
 
+  int get defeatedEnemies => _defeatedEnemies;
+
   double get elapsedSeconds => _elapsedSeconds;
 
   int? get timeLimitSeconds => _timeLimitSeconds;

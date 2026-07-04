@@ -2,7 +2,9 @@ import 'package:get/get.dart';
 import 'package:meme_game/core/network/api_client.dart';
 import 'package:meme_game/core/observability/app_logger.dart';
 import 'package:meme_game/data/repositories/level_repository.dart';
+import 'package:meme_game/data/repositories/progress_repository.dart';
 import 'package:meme_game/data/services/content_cache_service.dart';
+import 'package:meme_game/features/auth/auth_controller.dart';
 import 'package:meme_game/features/gameplay/controller.dart';
 
 /// 闯关页依赖注入。
@@ -20,6 +22,8 @@ class GameplayBinding extends Bindings {
     Get.lazyPut<GameplayController>(
       () => GameplayController(
         levelRepository: levelRepository,
+        progressRepository: Get.find<ProgressRepository>(),
+        authController: Get.find<AuthController>(),
         logger: logger,
       ),
     );
