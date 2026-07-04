@@ -41,6 +41,12 @@ class ResultController extends GetxController {
     if (reason.value == 'hitByEnemy') {
       return '被敌人搞了…';
     }
+    if (reason.value == 'timeUp') {
+      return '时间到了…';
+    }
+    if (reason.value == 'fakeGoal') {
+      return '冲到假旗子了…';
+    }
     return '搞事失败…';
   }
 

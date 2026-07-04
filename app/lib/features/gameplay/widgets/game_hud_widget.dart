@@ -33,6 +33,28 @@ class GameHudWidget extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(width: 8),
+                Obx(
+                  () {
+                    final double? remaining = controller.remainingSeconds.value;
+                    if (remaining == null) {
+                      return const SizedBox.shrink();
+                    }
+                    final bool isWarning = controller.isTimeWarning.value;
+                    return Chip(
+                      backgroundColor:
+                          isWarning ? Colors.red.shade100 : null,
+                      label: Text(
+                        '⏱ ${remaining.ceil()}s',
+                        style: TextStyle(
+                          color: isWarning ? Colors.red.shade900 : null,
+                          fontWeight:
+                              isWarning ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                    );
+                  },
+                ),
                 const Spacer(),
                 IconButton(
                   onPressed: controller.togglePause,

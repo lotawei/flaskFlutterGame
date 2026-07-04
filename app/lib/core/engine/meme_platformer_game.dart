@@ -8,8 +8,11 @@ import 'package:meme_game/core/engine/components/game_components.dart';
 import 'package:meme_game/core/engine/game_constants.dart';
 import 'package:meme_game/core/engine/input/game_input_state.dart';
 import 'package:meme_game/core/engine/sprites/sprite_registry.dart';
+import 'package:meme_game/core/level/level_archetype_id.dart';
 import 'package:meme_game/core/level/level_enemy_model.dart';
 import 'package:meme_game/core/level/level_model.dart';
+import 'package:meme_game/core/level/level_rule_evaluator.dart';
+import 'package:meme_game/core/level/level_rule_model.dart';
 import 'package:meme_game/core/observability/app_logger.dart';
 
 /// 游戏结束原因。
@@ -17,6 +20,8 @@ enum GameEndReason {
   victory,
   fellOff,
   hitByEnemy,
+  timeUp,
+  fakeGoal,
 }
 
 /// 搞事事横版闯关 Flame 游戏。
@@ -29,6 +34,7 @@ class MemePlatformerGame extends FlameGame
     required this.spriteRegistry,
     required this.onCoinCollected,
     required this.onGameEnded,
+    this.onTimerTick,
   });
 
   final LevelModel level;
@@ -37,12 +43,16 @@ class MemePlatformerGame extends FlameGame
   final SpriteRegistry spriteRegistry;
   final void Function(int totalCoins) onCoinCollected;
   final void Function(GameEndReason reason, int coins, double seconds) onGameEnded;
+  final void Function(double remainingSeconds)? onTimerTick;
 
   late PlayerComponent _player;
+  final LevelRuleEvaluator _ruleEvaluator = LevelRuleEvaluator();
   int _collectedCoins = 0;
   int _totalCoins = 0;
   int _defeatedEnemies = 0;
   double _elapsedSeconds = 0;
+  int? _timeLimitSeconds;
+  int? _timeWarnAtSeconds;
   bool _isEnded = false;
   bool _isPaused = false;
 
@@ -57,6 +67,23 @@ class MemePlatformerGame extends FlameGame
 
   double get elapsedSeconds => _elapsedSeconds;
 
+  int? get timeLimitSeconds => _timeLimitSeconds;
+
+  double? get remainingSeconds {
+    if (_timeLimitSeconds == null) {
+      return null;
+    }
+    return (_timeLimitSeconds! - _elapsedSeconds).clamp(0, _timeLimitSeconds!.toDouble());
+  }
+
+  bool get isTimeWarning {
+    if (_timeWarnAtSeconds == null || _timeLimitSeconds == null) {
+      return false;
+    }
+    final double? remaining = remainingSeconds;
+    return remaining != null && remaining <= _timeWarnAtSeconds!;
+  }
+
   void setPaused(bool value) {
     _isPaused = value;
     if (value) {
@@ -70,6 +97,7 @@ class MemePlatformerGame extends FlameGame
   Future<void> onLoad() async {
     await super.onLoad();
     await spriteRegistry.preloadAllAssets();
+    _loadMechanics();
     camera.viewfinder.anchor = Anchor.topLeft;
     add(
       SkyBackgroundComponent(
@@ -99,11 +127,21 @@ class MemePlatformerGame extends FlameGame
       message: '关卡加载完成',
       extra: <String, Object?>{
         'level_id': level.levelId,
+        'archetype': level.archetype.value,
         'coin_count': _totalCoins,
         'enemy_count': level.enemies.length,
         'sprites_loaded': spriteRegistry.isLoaded,
       },
     );
+  }
+
+  void _loadMechanics() {
+    _timeLimitSeconds = _ruleEvaluator.readTimeLimitSeconds(level.mechanics);
+    for (final MechanicConfigModel mechanic in level.mechanics) {
+      if (mechanic.type == MechanicType.timeLimit) {
+        _timeWarnAtSeconds = mechanic.params['warn_at'] as int? ?? 15;
+      }
+    }
   }
 
   void _buildLevel() {
@@ -149,6 +187,18 @@ class MemePlatformerGame extends FlameGame
           onDefeated: () {
             _defeatedEnemies += 1;
           },
+        ),
+      );
+    }
+    for (final LevelPointModel fakeGoal in level.fakeGoals) {
+      add(
+        FakeGoalComponent(
+          position: Vector2(
+            fakeGoal.x * level.tileSize.toDouble(),
+            fakeGoal.y * level.tileSize.toDouble(),
+          ),
+          spriteRegistry: spriteRegistry,
+          onReached: () => _finishGame(GameEndReason.fakeGoal),
         ),
       );
     }
@@ -204,7 +254,19 @@ class MemePlatformerGame extends FlameGame
     }
     super.update(dt);
     _elapsedSeconds += dt;
+    _updateTimeLimit();
     _updateCamera();
+  }
+
+  void _updateTimeLimit() {
+    if (_timeLimitSeconds == null) {
+      return;
+    }
+    final double remaining = remainingSeconds ?? 0;
+    onTimerTick?.call(remaining);
+    if (remaining <= 0) {
+      _finishGame(GameEndReason.timeUp);
+    }
   }
 
   void _updateCamera() {

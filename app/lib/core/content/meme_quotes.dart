@@ -27,9 +27,29 @@ class MemeQuotes {
     return victoryQuotes[seed % victoryQuotes.length];
   }
 
+  static const List<String> failTimeQuotes = <String>[
+    '时间到，下次早点冲',
+    '读秒读没了，属于是',
+    '卡点失败，再练一把',
+    '时间管理大师（反向）',
+  ];
+
+  static const List<String> failFakeGoalQuotes = <String>[
+    '假旗子也敢冲？',
+    '这波是被套路了',
+    '真终点在别处啊兄弟',
+    '反转了，但没完全反转',
+  ];
+
   static String pickFailQuote({required String reason, required int seed}) {
     if (reason == 'hitByEnemy') {
       return failEnemyQuotes[seed % failEnemyQuotes.length];
+    }
+    if (reason == 'timeUp') {
+      return failTimeQuotes[seed % failTimeQuotes.length];
+    }
+    if (reason == 'fakeGoal') {
+      return failFakeGoalQuotes[seed % failFakeGoalQuotes.length];
     }
     return failFellQuotes[seed % failFellQuotes.length];
   }

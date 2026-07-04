@@ -25,6 +25,8 @@ class GameplayController extends GetxController {
   final RxInt collectedCoins = 0.obs;
   final RxInt totalCoins = 0.obs;
   final RxDouble elapsedSeconds = 0.0.obs;
+  final RxnDouble remainingSeconds = RxnDouble();
+  final RxBool isTimeWarning = false.obs;
   final RxBool isPaused = false.obs;
   final RxString tipText = ''.obs;
 
@@ -69,8 +71,13 @@ class GameplayController extends GetxController {
         onCoinCollected: (int coins) {
           collectedCoins.value = coins;
         },
+        onTimerTick: (double remaining) {
+          remainingSeconds.value = remaining;
+          isTimeWarning.value = game?.isTimeWarning ?? false;
+        },
         onGameEnded: _handleGameEnded,
       );
+      remainingSeconds.value = game!.remainingSeconds;
     } catch (err) {
       hasError.value = true;
       errorMessage.value = err.toString();

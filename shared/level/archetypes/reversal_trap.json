@@ -1,0 +1,27 @@
+{
+  "archetype_id": "reversal_trap",
+  "name": "反转陷阱",
+  "tagline": "假平台、假终点，真路藏梗",
+  "core_loop": "试探 → 被骗 → 发现规律 → 找真终点",
+  "differentiation": "强梗记忆点，适合热梗章节高潮关",
+  "default_mechanics": [
+    { "type": "reversal_fake_goal", "params": { "fake_goal_fail": true } }
+  ],
+  "default_win_rules": [
+    { "type": "reach_goal", "params": { "must_be_real_goal": true } }
+  ],
+  "default_star_rules": [
+    { "star": 1, "condition": "clear", "params": {} },
+    { "star": 2, "condition": "no_damage", "params": {} },
+    { "star": 3, "condition": "coins_ratio", "params": { "ratio": 1.0 } }
+  ],
+  "default_monetization_hooks": [
+    { "slot": "hint_reveal", "enabled": true },
+    { "slot": "revive_on_fail", "enabled": true }
+  ],
+  "designer_knobs": {
+    "fake_goal_count": "1-3",
+    "fake_platform_ratio": "0.1-0.3",
+    "meme_payoff": "必须梗点明确"
+  }
+}

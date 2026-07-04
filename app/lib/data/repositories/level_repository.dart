@@ -25,6 +25,10 @@ class LevelRepository {
 
   static const Map<String, String> _bundledLevels = <String, String>{
     'demo_haqi': 'assets/levels/demo_haqi.json',
+    'timed_rush_demo': 'assets/levels/timed_rush_demo.json',
+    'reversal_trap_demo': 'assets/levels/reversal_trap_demo.json',
+    'greed_tax_demo': 'assets/levels/greed_tax_demo.json',
+    'lie_flat_demo': 'assets/levels/lie_flat_demo.json',
   };
 
   Future<LevelModel> loadLevel({

@@ -181,6 +181,41 @@ class EnemyComponent extends SpriteAnimationComponent with CollisionCallbacks {
   bool get isAlive => _isAlive;
 }
 
+/// 假终点旗子（反转陷阱关）。
+class FakeGoalComponent extends SpriteComponent with CollisionCallbacks {
+  FakeGoalComponent({
+    required super.position,
+    required this.spriteRegistry,
+    required this.onReached,
+  }) : super(size: Vector2(24, 48));
+
+  final SpriteRegistry spriteRegistry;
+  final void Function() onReached;
+  bool _isReached = false;
+
+  @override
+  Future<void> onLoad() async {
+    sprite = spriteRegistry.buildSprite('goal_flag');
+    add(RectangleHitbox());
+  }
+
+  void reach() {
+    if (_isReached) {
+      return;
+    }
+    _isReached = true;
+    onReached();
+  }
+
+  @override
+  void render(Canvas canvas) {
+    canvas.saveLayer(null, Paint());
+    super.render(canvas);
+    canvas.drawColor(const Color(0x66FF1744), BlendMode.srcATop);
+    canvas.restore();
+  }
+}
+
 /// 终点旗子。
 class GoalComponent extends SpriteComponent with CollisionCallbacks {
   GoalComponent({
@@ -332,6 +367,8 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     } else if (other is EnemyComponent) {
       _resolveEnemyCollision(other);
     } else if (other is GoalComponent) {
+      other.reach();
+    } else if (other is FakeGoalComponent) {
       other.reach();
     }
   }
