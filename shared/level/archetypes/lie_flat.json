@@ -1,0 +1,34 @@
+{
+  "archetype_id": "lie_flat",
+  "name": "躺平计量",
+  "tagline": "站着掉面子，躺平才能回血",
+  "core_loop": "移动 → 面子下降 → 找安全区蹲下 → 继续",
+  "differentiation": "反内卷梗，操作节奏与主流跑酷相反",
+  "default_mechanics": [
+    {
+      "type": "lie_flat_meter",
+      "params": {
+        "drain_per_sec_moving": 8,
+        "recover_per_sec_idle": 12,
+        "fail_at_zero": true
+      }
+    }
+  ],
+  "default_win_rules": [
+    { "type": "reach_goal", "params": {} }
+  ],
+  "default_star_rules": [
+    { "star": 1, "condition": "clear", "params": {} },
+    { "star": 2, "condition": "time_under", "params": { "seconds": 120 } },
+    { "star": 3, "condition": "no_damage", "params": {} }
+  ],
+  "default_monetization_hooks": [
+    { "slot": "revive_on_fail", "enabled": true },
+    { "slot": "hint_reveal", "enabled": false }
+  ],
+  "designer_knobs": {
+    "safe_zone_count": "2-4",
+    "drain_pressure": "中",
+    "meme_copy": "躺平/反卷文案"
+  }
+}
