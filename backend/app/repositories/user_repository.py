@@ -10,6 +10,13 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.repositories.json_store import read_json_file, write_json_file
 
+# Python 3.9（尤其 macOS Xcode Python）无 hashlib.scrypt，禁用 werkzeug 默认 scrypt
+_PASSWORD_HASH_METHOD = "pbkdf2:sha256"
+
+
+def _hash_password(password: str) -> str:
+    return generate_password_hash(password, method=_PASSWORD_HASH_METHOD)
+
 
 class UserRepository:
     """用户账号持久化。"""
@@ -37,7 +44,7 @@ class UserRepository:
             "user_id": user_id,
             "username": "demo",
             "display_name": "Demo 玩家",
-            "password_hash": generate_password_hash("demo123456"),
+            "password_hash": _hash_password("demo123456"),
             "created_at": now,
         }
         data.setdefault("users_by_id", {})[user_id] = record
@@ -62,7 +69,7 @@ class UserRepository:
             "user_id": user_id,
             "username": username,
             "display_name": display_name or username,
-            "password_hash": generate_password_hash(password),
+            "password_hash": _hash_password(password),
             "created_at": now,
         }
         data.setdefault("users_by_id", {})[user_id] = record
