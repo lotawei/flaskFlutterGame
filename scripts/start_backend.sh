@@ -7,6 +7,8 @@ if ! python3 -c "import flask, jwt" 2>/dev/null; then
   echo ">>> 安装 Python 依赖..."
   pip3 install -r requirements.txt
 fi
+PY_VERSION="$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
+echo ">>> Python ${PY_VERSION}"
 PORT="${PORT:-5050}"
 export PORT
 export PYTHONPATH=.

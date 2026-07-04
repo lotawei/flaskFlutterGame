@@ -1,7 +1,7 @@
 """JWT 签发与校验。"""
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import jwt
@@ -20,8 +20,8 @@ def create_access_token(
     payload: dict[str, Any] = {
         "sub": user_id,
         "username": username,
-        "exp": datetime.now(tz=UTC) + timedelta(seconds=expires_in),
-        "iat": datetime.now(tz=UTC),
+        "exp": datetime.now(tz=timezone.utc) + timedelta(seconds=expires_in),
+        "iat": datetime.now(tz=timezone.utc),
     }
     token: str = jwt.encode(payload, config.jwt_secret, algorithm="HS256")
     return token, expires_in
