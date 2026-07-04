@@ -21,12 +21,16 @@ flutter run -d chrome
 cd backend
 pip install -r requirements.txt
 python run.py
+# 默认端口 5050（macOS 上 5000 常被 AirPlay 占用）
+# 如需指定端口：PORT=5001 python run.py
 ```
 
 **终端 2 — 客户端：**
 ```bash
 cd app
-flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:5000
+flutter run -d chrome
+# 默认已指向 http://localhost:5050
+# 自定义：flutter run --dart-define=API_BASE_URL=http://localhost:5050
 ```
 
 后端启动后，客户端会优先从 API 拉取关卡并缓存到本地；后端不可用时自动回退内置 `assets/levels/demo_haqi.json`。
@@ -34,8 +38,13 @@ flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:5000
 ## 验证 API
 
 ```bash
-curl http://localhost:5000/api/v1/content/levels/demo_haqi
-curl http://localhost:5000/api/v1/content/manifest
+curl http://localhost:5050/health
+curl http://localhost:5050/api/v1/content/levels/demo_haqi
+curl http://localhost:5050/api/v1/content/manifest
+# 登录
+curl -X POST http://localhost:5050/api/v1/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"demo","password":"demo123456"}'
 ```
 
 ## 测试

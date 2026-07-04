@@ -17,7 +17,7 @@ class AppConfig {
       serviceName: 'meme-game-app',
       apiBaseUrl: const String.fromEnvironment(
         'API_BASE_URL',
-        defaultValue: 'http://localhost:5000',
+        defaultValue: 'http://localhost:5050',
       ),
       logLevel: const String.fromEnvironment(
         'LOG_LEVEL',
