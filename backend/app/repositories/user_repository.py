@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -32,7 +32,7 @@ class UserRepository:
         if "demo" in data.get("username_index", {}):
             return
         user_id = f"user-{uuid.uuid4().hex[:12]}"
-        now = datetime.now(tz=UTC).isoformat()
+        now = datetime.now(tz=timezone.utc).isoformat()
         record = {
             "user_id": user_id,
             "username": "demo",
@@ -57,7 +57,7 @@ class UserRepository:
         if username in username_index:
             raise ValueError("USERNAME_TAKEN")
         user_id = f"user-{uuid.uuid4().hex[:12]}"
-        now = datetime.now(tz=UTC).isoformat()
+        now = datetime.now(tz=timezone.utc).isoformat()
         record = {
             "user_id": user_id,
             "username": username,

@@ -1,7 +1,7 @@
 """用户关卡进度仓库。"""
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -48,7 +48,7 @@ class ProgressRepository:
         users = data.setdefault("users", {})
         user_data = users.setdefault(user_id, {"levels": {}, "sessions": []})
         levels: dict[str, Any] = user_data.setdefault("levels", {})
-        now = datetime.now(tz=UTC).isoformat()
+        now = datetime.now(tz=timezone.utc).isoformat()
         current = levels.get(level_id, {})
         is_victory = reason == "victory"
         updated = {
