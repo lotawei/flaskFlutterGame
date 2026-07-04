@@ -60,21 +60,30 @@ class GameHudWidget extends StatelessWidget {
               () => controller.tipText.value.isEmpty
                   ? const SizedBox.shrink()
                   : Container(
+                      margin: const EdgeInsets.only(top: 4),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                        horizontal: 14,
+                        vertical: 10,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.hudBg,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white24, width: 1.5),
+                        color: AppColors.surface.withValues(alpha: 0.95),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.outline, width: 2),
+                        boxShadow: const <BoxShadow>[
+                          BoxShadow(
+                            color: AppColors.outline,
+                            offset: Offset(0, 2),
+                            blurRadius: 0,
+                          ),
+                        ],
                       ),
                       child: Text(
                         controller.tipText.value,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AppColors.textPrimary,
                           fontSize: 13,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w800,
+                          height: 1.35,
                         ),
                       ),
                     ),

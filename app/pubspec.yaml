@@ -73,6 +73,7 @@ flutter:
     - assets/levels/
     - assets/levels/demo_haqi.json
     - assets/images/
+    - assets/images/backgrounds/
     - assets/images/sprites/player/
     - assets/images/sprites/collectibles/
     - assets/images/sprites/environment/

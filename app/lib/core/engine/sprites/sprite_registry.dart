@@ -31,8 +31,12 @@ class SpriteRegistry {
       'backgrounds/bg_sky.png',
     ];
     for (final String path in imagePaths) {
-      await Flame.images.load(path);
-      _imageMap[_mapKey(path)] = Flame.images.fromCache(path);
+      try {
+        await Flame.images.load(path);
+        _imageMap[_mapKey(path)] = Flame.images.fromCache(path);
+      } catch (_) {
+        // 单个资源缺失不应阻断整局；对应组件会走程序化 fallback。
+      }
     }
     _metaMap['player'] = await _loadMeta(
       '${_bundleRoot}sprites/player/player_sheet.json',
