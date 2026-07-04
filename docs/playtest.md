@@ -75,4 +75,5 @@ cd backend && PYTHONPATH=. pytest -q
 
 - 游戏黑屏：看 DevTools Console 搜 `game.level.load.failed`
 - 无法连接后端：首页会提示「梗包服务未连接」，本地试玩不受影响
+- **iOS 模拟器启动失败**（`FBSOpenApplicationServiceErrorDomain`）：见 [ios-simulator-troubleshooting.md](./ios-simulator-troubleshooting.md)，建议先用 `flutter run -d chrome`
 - 用 `trace_id` 串联日志，详见 [observability.md](./observability.md)
