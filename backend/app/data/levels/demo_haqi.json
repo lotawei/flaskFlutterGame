@@ -24,6 +24,10 @@
     { "x": 57, "y": 7 },
     { "x": 70, "y": 10 }
   ],
+  "enemies": [
+    { "x": 19, "y": 9, "patrol_left": 1, "patrol_right": 3 },
+    { "x": 45, "y": 9, "patrol_left": 2, "patrol_right": 4 }
+  ],
   "goal": { "x": 76, "y": 9 },
-  "tip_text": "到达终点旗子即通关！收集金币搞更多事～"
+  "tip_text": "踩敌人头顶可消灭！侧面碰到会失败。收集金币搞更多事～"
 }

@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/sprite.dart';
+import 'package:meme_game/core/engine/components/effect_components.dart';
 import 'package:meme_game/core/engine/game_constants.dart';
 import 'package:meme_game/core/engine/input/game_input_state.dart';
 import 'package:meme_game/core/engine/sprites/sprite_registry.dart';
@@ -102,10 +103,12 @@ class CoinComponent extends SpriteAnimationComponent with CollisionCallbacks {
     required super.position,
     required this.spriteRegistry,
     required this.onCollected,
+    this.onBurst,
   }) : super(size: Vector2.all(20));
 
   final SpriteRegistry spriteRegistry;
   final void Function() onCollected;
+  final void Function(Vector2 worldPosition)? onBurst;
   bool _isCollected = false;
 
   @override
@@ -119,9 +122,63 @@ class CoinComponent extends SpriteAnimationComponent with CollisionCallbacks {
       return;
     }
     _isCollected = true;
+    onBurst?.call(position + size / 2);
     removeFromParent();
     onCollected();
   }
+}
+
+/// 巡逻敌人。
+class EnemyComponent extends SpriteAnimationComponent with CollisionCallbacks {
+  EnemyComponent({
+    required super.position,
+    required this.patrolMinX,
+    required this.patrolMaxX,
+    required this.spriteRegistry,
+    required this.onDefeated,
+  }) : super(size: Vector2(28, 28));
+
+  final double patrolMinX;
+  final double patrolMaxX;
+  final SpriteRegistry spriteRegistry;
+  final void Function() onDefeated;
+  double _direction = 1;
+  bool _isAlive = true;
+
+  @override
+  Future<void> onLoad() async {
+    animation = spriteRegistry.buildAnimation('enemy', 'walk');
+    add(RectangleHitbox());
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    if (!_isAlive) {
+      return;
+    }
+    position.x += _direction * GameConstants.enemyPatrolSpeed * dt;
+    if (position.x <= patrolMinX) {
+      position.x = patrolMinX;
+      _direction = 1;
+      scale.x = 1;
+    } else if (position.x + size.x >= patrolMaxX) {
+      position.x = patrolMaxX - size.x;
+      _direction = -1;
+      scale.x = -1;
+    }
+  }
+
+  void defeat() {
+    if (!_isAlive) {
+      return;
+    }
+    _isAlive = false;
+    removeFromParent();
+    onDefeated();
+  }
+
+  bool get isAlive => _isAlive;
 }
 
 /// 终点旗子。
@@ -157,18 +214,23 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
   PlayerComponent({
     required this.inputState,
     required this.onFellOff,
+    required this.onHitByEnemy,
     required this.worldHeight,
     required this.spriteRegistry,
+    this.onLand,
   }) : super(size: Vector2(28, 28));
 
   final GameInputState inputState;
   final void Function() onFellOff;
+  final void Function() onHitByEnemy;
   final double worldHeight;
   final SpriteRegistry spriteRegistry;
+  final void Function(Vector2 worldPosition)? onLand;
 
   Vector2 velocity = Vector2.zero();
   bool isOnGround = false;
   bool _hasJumpedThisPress = false;
+  bool _wasOnGround = false;
 
   @override
   Future<void> onLoad() async {
@@ -207,6 +269,10 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     if (!inputState.jumpHeld) {
       _hasJumpedThisPress = false;
     }
+    if (isOnGround && !_wasOnGround) {
+      onLand?.call(Vector2(position.x + size.x / 2, position.y + size.y));
+    }
+    _wasOnGround = isOnGround;
   }
 
   void _applyHorizontalInput() {
@@ -263,6 +329,8 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
       _resolvePlatformCollision(other, intersectionPoints);
     } else if (other is CoinComponent) {
       other.collect();
+    } else if (other is EnemyComponent) {
+      _resolveEnemyCollision(other);
     } else if (other is GoalComponent) {
       other.reach();
     }
@@ -293,5 +361,20 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
       position.y = platformBottom;
       velocity.y = 0;
     }
+  }
+
+  void _resolveEnemyCollision(EnemyComponent enemy) {
+    if (!enemy.isAlive) {
+      return;
+    }
+    final bool isStomp =
+        velocity.y > 0 && (position.y + size.y - enemy.position.y) < 14;
+    if (isStomp) {
+      enemy.defeat();
+      velocity.y = -GameConstants.playerJumpSpeed * 0.65;
+      isOnGround = false;
+      return;
+    }
+    onHitByEnemy();
   }
 }

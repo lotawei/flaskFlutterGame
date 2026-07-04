@@ -17,7 +17,7 @@ class SpriteRegistry {
 
   bool get isLoaded => _isLoaded;
 
-  Future<void> preloadP0Assets() async {
+  Future<void> preloadAllAssets() async {
     if (_isLoaded) {
       return;
     }
@@ -27,6 +27,7 @@ class SpriteRegistry {
       'sprites/environment/tile_ground.png',
       'sprites/environment/tile_platform.png',
       'sprites/collectibles/goal_flag.png',
+      'sprites/enemies/enemy_basic_sheet.png',
       'backgrounds/bg_sky.png',
     ];
     for (final String path in imagePaths) {
@@ -39,8 +40,14 @@ class SpriteRegistry {
     _metaMap['coin'] = await _loadMeta(
       '${_bundleRoot}sprites/collectibles/coin_sheet.json',
     );
+    _metaMap['enemy'] = await _loadMeta(
+      '${_bundleRoot}sprites/enemies/enemy_basic_sheet.json',
+    );
     _isLoaded = true;
   }
+
+  @Deprecated('Use preloadAllAssets')
+  Future<void> preloadP0Assets() => preloadAllAssets();
 
   String _mapKey(String path) {
     if (path.contains('player_sheet')) {
@@ -48,6 +55,9 @@ class SpriteRegistry {
     }
     if (path.contains('coin_sheet')) {
       return 'coin';
+    }
+    if (path.contains('enemy_basic')) {
+      return 'enemy';
     }
     if (path.contains('tile_ground')) {
       return 'tile_ground';

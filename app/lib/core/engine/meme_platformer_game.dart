@@ -3,10 +3,12 @@ import 'package:flame/game.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:meme_game/core/engine/components/effect_components.dart';
 import 'package:meme_game/core/engine/components/game_components.dart';
 import 'package:meme_game/core/engine/game_constants.dart';
 import 'package:meme_game/core/engine/input/game_input_state.dart';
 import 'package:meme_game/core/engine/sprites/sprite_registry.dart';
+import 'package:meme_game/core/level/level_enemy_model.dart';
 import 'package:meme_game/core/level/level_model.dart';
 import 'package:meme_game/core/observability/app_logger.dart';
 
@@ -14,6 +16,7 @@ import 'package:meme_game/core/observability/app_logger.dart';
 enum GameEndReason {
   victory,
   fellOff,
+  hitByEnemy,
 }
 
 /// 搞事事横版闯关 Flame 游戏。
@@ -38,6 +41,7 @@ class MemePlatformerGame extends FlameGame
   late PlayerComponent _player;
   int _collectedCoins = 0;
   int _totalCoins = 0;
+  int _defeatedEnemies = 0;
   double _elapsedSeconds = 0;
   bool _isEnded = false;
   bool _isPaused = false;
@@ -65,7 +69,7 @@ class MemePlatformerGame extends FlameGame
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    await spriteRegistry.preloadP0Assets();
+    await spriteRegistry.preloadAllAssets();
     camera.viewfinder.anchor = Anchor.topLeft;
     add(
       SkyBackgroundComponent(
@@ -78,8 +82,10 @@ class MemePlatformerGame extends FlameGame
     _player = PlayerComponent(
       inputState: inputState,
       onFellOff: () => _finishGame(GameEndReason.fellOff),
+      onHitByEnemy: () => _finishGame(GameEndReason.hitByEnemy),
       worldHeight: level.worldHeight,
       spriteRegistry: spriteRegistry,
+      onLand: _spawnLandDust,
     );
     _player.position = Vector2(
       level.playerSpawn.x * level.tileSize.toDouble() + 2,
@@ -90,10 +96,11 @@ class MemePlatformerGame extends FlameGame
     logger.info(
       module: 'core.engine',
       event: 'game.level.load.completed',
-      message: '关卡加载完成（含 P0 精灵）',
+      message: '关卡加载完成',
       extra: <String, Object?>{
         'level_id': level.levelId,
         'coin_count': _totalCoins,
+        'enemy_count': level.enemies.length,
         'sprites_loaded': spriteRegistry.isLoaded,
       },
     );
@@ -127,6 +134,21 @@ class MemePlatformerGame extends FlameGame
           ),
           spriteRegistry: spriteRegistry,
           onCollected: _handleCoinCollected,
+          onBurst: _spawnCoinBurst,
+        ),
+      );
+    }
+    for (final LevelEnemyModel enemy in level.enemies) {
+      final double tile = level.tileSize.toDouble();
+      add(
+        EnemyComponent(
+          position: Vector2(enemy.x * tile, enemy.y * tile),
+          patrolMinX: (enemy.x - enemy.patrolLeft) * tile,
+          patrolMaxX: (enemy.x + enemy.patrolRight + 1) * tile,
+          spriteRegistry: spriteRegistry,
+          onDefeated: () {
+            _defeatedEnemies += 1;
+          },
         ),
       );
     }
@@ -140,6 +162,14 @@ class MemePlatformerGame extends FlameGame
         onReached: () => _finishGame(GameEndReason.victory),
       ),
     );
+  }
+
+  void _spawnCoinBurst(Vector2 worldPosition) {
+    add(CoinBurstEffect(position: worldPosition - Vector2.all(12)));
+  }
+
+  void _spawnLandDust(Vector2 worldPosition) {
+    add(LandDustEffect(position: worldPosition - Vector2(16, 10)));
   }
 
   void _handleCoinCollected() {
@@ -160,6 +190,7 @@ class MemePlatformerGame extends FlameGame
       extra: <String, Object?>{
         'reason': reason.name,
         'coins': _collectedCoins,
+        'defeated_enemies': _defeatedEnemies,
         'seconds': _elapsedSeconds,
       },
     );

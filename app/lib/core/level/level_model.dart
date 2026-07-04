@@ -1,3 +1,5 @@
+import 'package:meme_game/core/level/level_enemy_model.dart';
+
 /// 关卡数据模型。
 class LevelModel {
   LevelModel({
@@ -10,6 +12,7 @@ class LevelModel {
     required this.playerSpawn,
     required this.platforms,
     required this.coins,
+    required this.enemies,
     required this.goal,
     required this.tipText,
   });
@@ -23,6 +26,7 @@ class LevelModel {
   final LevelPointModel playerSpawn;
   final List<LevelRectModel> platforms;
   final List<LevelPointModel> coins;
+  final List<LevelEnemyModel> enemies;
   final LevelPointModel goal;
   final String tipText;
 
@@ -42,6 +46,7 @@ class LevelModel {
       ),
       platforms: _parseRects(json['platforms']),
       coins: _parsePoints(json['coins']),
+      enemies: _parseEnemies(json['enemies']),
       goal: LevelPointModel.fromJson(
         json['goal'] as Map<String, dynamic>? ?? <String, dynamic>{},
       ),
@@ -66,6 +71,16 @@ class LevelModel {
     return raw
         .whereType<Map<String, dynamic>>()
         .map(LevelPointModel.fromJson)
+        .toList();
+  }
+
+  static List<LevelEnemyModel> _parseEnemies(Object? raw) {
+    if (raw is! List<dynamic>) {
+      return <LevelEnemyModel>[];
+    }
+    return raw
+        .whereType<Map<String, dynamic>>()
+        .map(LevelEnemyModel.fromJson)
         .toList();
   }
 }

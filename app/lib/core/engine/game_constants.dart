@@ -7,5 +7,5 @@ class GameConstants {
   static const double playerJumpSpeed = 420;
   static const double maxFallSpeed = 640;
   static const double cameraLerp = 8;
-  static const int targetFps = 60;
+  static const double enemyPatrolSpeed = 60;
 }

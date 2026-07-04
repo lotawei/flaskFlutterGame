@@ -8,22 +8,32 @@ class ResultView extends GetView<ResultController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('本局结算')),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Obx(() {
-          return Column(
+    return Obx(() {
+      final Color bgColor = controller.isVictory
+          ? const Color(0xFFFFF3E0)
+          : const Color(0xFFE3F2FD);
+      return Scaffold(
+        backgroundColor: bgColor,
+        appBar: AppBar(
+          title: const Text('本局结算'),
+          backgroundColor: bgColor,
+          elevation: 0,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               Icon(
-                controller.isVictory ? Icons.emoji_events : Icons.sentiment_dissatisfied,
+                controller.isVictory
+                    ? Icons.emoji_events
+                    : Icons.sentiment_dissatisfied,
                 size: 72,
-                color: controller.isVictory ? Colors.amber : Colors.grey,
+                color: controller.isVictory ? Colors.amber : Colors.blueGrey,
               ),
               const SizedBox(height: 16),
               Text(
-                controller.isVictory ? '搞事成功！' : '搞事失败…',
+                controller.titleText,
                 style: Theme.of(context).textTheme.headlineSmall,
                 textAlign: TextAlign.center,
               ),
@@ -33,7 +43,18 @@ class ResultView extends GetView<ResultController> {
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.grey),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Text(
+                    controller.memeQuote.value,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
               _StatRow(
                 label: '收集金币',
                 value: '${controller.coins.value}/${controller.totalCoins.value}',
@@ -57,10 +78,10 @@ class ResultView extends GetView<ResultController> {
                 child: const Text('回首页'),
               ),
             ],
-          );
-        }),
-      ),
-    );
+          ),
+        ),
+      );
+    });
   }
 }
 
