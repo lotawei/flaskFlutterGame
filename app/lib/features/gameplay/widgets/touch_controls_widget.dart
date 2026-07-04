@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meme_game/core/theme/app_colors.dart';
 import 'package:meme_game/features/gameplay/controller.dart';
 
 /// 触控按钮（移动端）。
@@ -21,7 +22,7 @@ class TouchControlsWidget extends StatelessWidget {
                 onPressed: () => controller.setMoveLeft(true),
                 onReleased: () => controller.setMoveLeft(false),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               _ControlButton(
                 label: '→',
                 onPressed: () => controller.setMoveRight(true),
@@ -32,7 +33,8 @@ class TouchControlsWidget extends StatelessWidget {
                 label: '跳',
                 onPressed: () => controller.setJumpHeld(true),
                 onReleased: () => controller.setJumpHeld(false),
-                width: 72,
+                width: 76,
+                isAccent: true,
               ),
             ],
           ),
@@ -47,35 +49,45 @@ class _ControlButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     required this.onReleased,
-    this.width = 56,
+    this.width = 60,
+    this.isAccent = false,
   });
 
   final String label;
   final VoidCallback onPressed;
   final VoidCallback onReleased;
   final double width;
+  final bool isAccent;
 
   @override
   Widget build(BuildContext context) {
+    final Color bg = isAccent ? AppColors.accent : AppColors.primary;
     return Listener(
       onPointerDown: (_) => onPressed(),
       onPointerUp: (_) => onReleased(),
       onPointerCancel: (_) => onReleased(),
       child: Container(
         width: width,
-        height: 56,
+        height: 60,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.45),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white24),
+          color: bg,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.outline, width: 2.5),
+          boxShadow: const <BoxShadow>[
+            BoxShadow(
+              color: AppColors.outline,
+              offset: Offset(0, 4),
+              blurRadius: 0,
+            ),
+          ],
         ),
         child: Text(
           label,
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+            fontSize: 22,
+            fontWeight: FontWeight.w900,
           ),
         ),
       ),

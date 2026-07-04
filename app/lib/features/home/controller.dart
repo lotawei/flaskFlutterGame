@@ -44,28 +44,28 @@ class HomeController extends GetxController {
   static const List<DemoLevelEntry> demoLevels = <DemoLevelEntry>[
     DemoLevelEntry(
       levelId: 'demo_haqi',
-      title: '哈基高原 · 标准冲关',
-      subtitle: 'rush_standard · 基础教学关',
+      title: '哈基高原',
+      subtitle: '先跑起来！冲过陷阱，摸到旗子就赢',
     ),
     DemoLevelEntry(
       levelId: 'timed_rush_demo',
-      title: '读秒冲刺 · 限时冲关',
-      subtitle: 'timed_rush · 60 秒倒计时',
+      title: '读秒冲刺',
+      subtitle: '60 秒内必须到终点，晚一秒都不行',
     ),
     DemoLevelEntry(
       levelId: 'reversal_trap_demo',
-      title: '假旗反转 · 反转陷阱',
-      subtitle: 'reversal_trap · 找真终点',
+      title: '假旗反转',
+      subtitle: '路上旗帜可能是假的，找到真终点',
     ),
     DemoLevelEntry(
       levelId: 'greed_tax_demo',
-      title: '来财税局 · 贪币增难',
-      subtitle: 'greed_tax · 机制预埋',
+      title: '来财税局',
+      subtitle: '金币拿太多？难度也会跟着涨',
     ),
     DemoLevelEntry(
       levelId: 'lie_flat_demo',
-      title: '躺平计量 · 走停节奏',
-      subtitle: 'lie_flat · 机制预埋',
+      title: '躺平计量',
+      subtitle: '走停节奏，别急着送人头',
     ),
   ];
 

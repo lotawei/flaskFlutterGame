@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:meme_game/app/app_module.dart';
+import 'package:meme_game/core/theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,10 +17,7 @@ class MemeGameApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: '搞事事',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.buildLightTheme(),
       initialRoute: '/',
       getPages: AppModule.pages,
       debugShowCheckedModeBanner: false,

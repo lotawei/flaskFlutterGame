@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:meme_game/core/theme/app_colors.dart';
 import 'package:meme_game/features/gameplay/controller.dart';
 
 /// 游戏 HUD：金币、提示、暂停。
@@ -18,19 +19,15 @@ class GameHudWidget extends StatelessWidget {
           children: <Widget>[
             Row(
               children: <Widget>[
-                IconButton(
+                _HudIconButton(
+                  icon: Icons.arrow_back_rounded,
                   onPressed: () => Get.back<void>(),
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.black54,
-                  ),
                 ),
                 const SizedBox(width: 8),
                 Obx(
-                  () => Chip(
-                    label: Text(
-                      '金币 ${controller.collectedCoins.value}/${controller.totalCoins.value}',
-                    ),
+                  () => _HudChip(
+                    label: '🪙 ${controller.collectedCoins.value}/${controller.totalCoins.value}',
+                    highlight: true,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -41,31 +38,19 @@ class GameHudWidget extends StatelessWidget {
                       return const SizedBox.shrink();
                     }
                     final bool isWarning = controller.isTimeWarning.value;
-                    return Chip(
-                      backgroundColor:
-                          isWarning ? Colors.red.shade100 : null,
-                      label: Text(
-                        '⏱ ${remaining.ceil()}s',
-                        style: TextStyle(
-                          color: isWarning ? Colors.red.shade900 : null,
-                          fontWeight:
-                              isWarning ? FontWeight.bold : FontWeight.normal,
-                        ),
-                      ),
+                    return _HudChip(
+                      label: '⏱ ${remaining.ceil()}s',
+                      isDanger: isWarning,
                     );
                   },
                 ),
                 const Spacer(),
-                IconButton(
-                  onPressed: controller.togglePause,
-                  icon: Obx(
-                    () => Icon(
-                      controller.isPaused.value ? Icons.play_arrow : Icons.pause,
-                      color: Colors.white,
-                    ),
-                  ),
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.black54,
+                Obx(
+                  () => _HudIconButton(
+                    icon: controller.isPaused.value
+                        ? Icons.play_arrow_rounded
+                        : Icons.pause_rounded,
+                    onPressed: controller.togglePause,
                   ),
                 ),
               ],
@@ -76,25 +61,114 @@ class GameHudWidget extends StatelessWidget {
                   ? const SizedBox.shrink()
                   : Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
+                        horizontal: 12,
+                        vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.black54,
-                        borderRadius: BorderRadius.circular(8),
+                        color: AppColors.hudBg,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white24, width: 1.5),
                       ),
                       child: Text(
                         controller.tipText.value,
-                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
             ),
             const Spacer(),
-            const Text(
-              '键盘: A/D 或 ←/→ 移动，W/↑/空格 跳跃',
-              style: TextStyle(color: Colors.black87, fontSize: 11),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.75),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.outline.withValues(alpha: 0.5)),
+              ),
+              child: const Text(
+                '键盘: A/D 或 ←/→ 移动 · W/↑/空格 跳跃',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HudIconButton extends StatelessWidget {
+  const _HudIconButton({required this.icon, required this.onPressed});
+
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.hudBg,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: 44,
+          height: 44,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white24, width: 1.5),
+          ),
+          child: Icon(icon, color: Colors.white, size: 22),
+        ),
+      ),
+    );
+  }
+}
+
+class _HudChip extends StatelessWidget {
+  const _HudChip({
+    required this.label,
+    this.highlight = false,
+    this.isDanger = false,
+  });
+
+  final String label;
+  final bool highlight;
+  final bool isDanger;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color bg = isDanger
+        ? AppColors.danger.withValues(alpha: 0.9)
+        : highlight
+            ? AppColors.coin.withValues(alpha: 0.95)
+            : AppColors.hudBg;
+    final Color textColor = highlight && !isDanger
+        ? AppColors.textPrimary
+        : Colors.white;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDanger ? AppColors.danger : AppColors.outline.withValues(alpha: 0.6),
+          width: 1.5,
+        ),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: textColor,
+          fontWeight: FontWeight.w800,
+          fontSize: 13,
         ),
       ),
     );
