@@ -1,0 +1,215 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://meme-game.local/schemas/level/v2.json",
+  "title": "MemeGameLevel",
+  "description": "搞事事关卡数据契约 v2 — 支持玩法原型与机制积木",
+  "type": "object",
+  "required": [
+    "level_id",
+    "name",
+    "archetype",
+    "tile_size",
+    "width_tiles",
+    "height_tiles",
+    "player_spawn",
+    "platforms",
+    "goal",
+    "win_rules"
+  ],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 2 },
+    "level_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{2,48}$"
+    },
+    "name": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "archetype": {
+      "type": "string",
+      "enum": ["rush_standard", "timed_rush", "reversal_trap", "greed_tax", "lie_flat", "gravity_flip"]
+    },
+    "meme_theme": {
+      "type": "string",
+      "description": "梗皮肤主题，映射美术资源包"
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": ["easy", "normal", "hard", "chaos"]
+    },
+    "tile_size": { "type": "integer", "const": 32 },
+    "width_tiles": { "type": "integer", "minimum": 20, "maximum": 200 },
+    "height_tiles": { "type": "integer", "minimum": 10, "maximum": 30 },
+    "player_spawn": { "$ref": "#/definitions/point" },
+    "platforms": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/platform" },
+      "minItems": 1
+    },
+    "coins": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/point" }
+    },
+    "enemies": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/enemy" }
+    },
+    "traps": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/trap" }
+    },
+    "goal": { "$ref": "#/definitions/point" },
+    "fake_goals": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/point" }
+    },
+    "gravity_zones": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/gravity_zone" }
+    },
+    "mechanics": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/mechanic" }
+    },
+    "win_rules": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/win_rule" },
+      "minItems": 1
+    },
+    "star_rules": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/star_rule" }
+    },
+    "monetization_hooks": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/monetization_hook" }
+    },
+    "tip_text": { "type": "string", "maxLength": 120 },
+    "designer_notes": { "type": "string" }
+  },
+  "definitions": {
+    "point": {
+      "type": "object",
+      "required": ["x", "y"],
+      "properties": {
+        "x": { "type": "integer", "minimum": 0 },
+        "y": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "platform": {
+      "type": "object",
+      "required": ["x", "y", "w", "h"],
+      "properties": {
+        "x": { "type": "integer" },
+        "y": { "type": "integer" },
+        "w": { "type": "integer", "minimum": 1 },
+        "h": { "type": "integer", "minimum": 1 },
+        "kind": {
+          "type": "string",
+          "enum": ["solid", "fake", "moving", "crumble"]
+        },
+        "move_axis": { "type": "string", "enum": ["x", "y"] },
+        "move_range": { "type": "integer", "minimum": 1 },
+        "move_speed": { "type": "number", "minimum": 1 }
+      }
+    },
+    "enemy": {
+      "type": "object",
+      "required": ["x", "y"],
+      "properties": {
+        "x": { "type": "integer" },
+        "y": { "type": "integer" },
+        "patrol_left": { "type": "integer", "minimum": 0 },
+        "patrol_right": { "type": "integer", "minimum": 0 },
+        "kind": { "type": "string", "enum": ["patrol", "static", "chase_light"] }
+      }
+    },
+    "trap": {
+      "type": "object",
+      "required": ["x", "y", "kind"],
+      "properties": {
+        "x": { "type": "integer" },
+        "y": { "type": "integer" },
+        "kind": {
+          "type": "string",
+          "enum": ["spike", "tax_zone", "face_drain", "rhythm_gate", "gravity_flip"]
+        },
+        "w": { "type": "integer", "default": 1 },
+        "h": { "type": "integer", "default": 1 }
+      }
+    },
+    "gravity_zone": {
+      "type": "object",
+      "required": ["x", "y", "w", "h", "gravity"],
+      "properties": {
+        "x": { "type": "integer" },
+        "y": { "type": "integer" },
+        "w": { "type": "integer", "minimum": 1 },
+        "h": { "type": "integer", "minimum": 1 },
+        "gravity": { "type": "string", "enum": ["up", "down"] }
+      }
+    },
+    "mechanic": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "time_limit",
+            "coin_greed_scale",
+            "lie_flat_meter",
+            "reversal_fake_goal",
+            "rhythm_step",
+            "gravity_flip"
+          ]
+        },
+        "params": { "type": "object" }
+      }
+    },
+    "win_rule": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["reach_goal", "collect_coins_min", "survive_time"]
+        },
+        "params": { "type": "object" }
+      }
+    },
+    "star_rule": {
+      "type": "object",
+      "required": ["star", "condition"],
+      "properties": {
+        "star": { "type": "integer", "enum": [1, 2, 3] },
+        "condition": {
+          "type": "string",
+          "enum": [
+            "clear",
+            "coins_ratio",
+            "time_under",
+            "no_damage",
+            "defeat_all_enemies"
+          ]
+        },
+        "params": { "type": "object" }
+      }
+    },
+    "monetization_hook": {
+      "type": "object",
+      "required": ["slot"],
+      "properties": {
+        "slot": {
+          "type": "string",
+          "enum": [
+            "revive_on_fail",
+            "double_coins",
+            "skip_hard_section",
+            "hint_reveal",
+            "season_bonus"
+          ]
+        },
+        "enabled": { "type": "boolean", "default": true }
+      }
+    }
+  }
+}

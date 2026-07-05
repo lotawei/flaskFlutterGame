@@ -1,0 +1,35 @@
+{
+    "name": "搞事事",
+    "short_name": "搞事事",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#E8E8E8",
+    "theme_color": "#7C4DFF",
+    "description": "抽象热梗 2D 像素闯关",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}

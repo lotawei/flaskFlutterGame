@@ -1,0 +1,35 @@
+{
+  "schema_version": 2,
+  "level_id": "gravity_flip_TEMPLATE",
+  "name": "重力反转模板",
+  "archetype": "gravity_flip",
+  "meme_theme": "ibb_tunnel",
+  "difficulty": "normal",
+  "tile_size": 32,
+  "width_tiles": 60,
+  "height_tiles": 15,
+  "player_spawn": { "x": 2, "y": 11 },
+  "gravity_zones": [
+    { "x": 0, "y": 0, "w": 60, "h": 7, "gravity": "up" },
+    { "x": 0, "y": 7, "w": 60, "h": 8, "gravity": "down" }
+  ],
+  "platforms": [
+    { "x": 0, "y": 13, "w": 12, "h": 2 },
+    { "x": 28, "y": 6, "w": 10, "h": 1 },
+    { "x": 45, "y": 2, "w": 10, "h": 1 },
+    { "x": 0, "y": 14, "w": 60, "h": 1 }
+  ],
+  "coins": [],
+  "enemies": [],
+  "goal": { "x": 52, "y": 1 },
+  "mechanics": [
+    { "type": "gravity_flip", "params": { "default_gravity": "down" } }
+  ],
+  "win_rules": [{ "type": "reach_goal", "params": {} }],
+  "star_rules": [
+    { "star": 1, "condition": "clear", "params": {} },
+    { "star": 2, "condition": "coins_ratio", "params": { "ratio": 0.5 } },
+    { "star": 3, "condition": "no_damage", "params": {} }
+  ],
+  "tip_text": "上区倒挂走天花板，下区常规地面"
+}
