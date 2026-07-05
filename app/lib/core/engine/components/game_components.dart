@@ -272,7 +272,9 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
   bool _hasJumpedThisPress = false;
   bool _wasOnGround = false;
   double _coyoteTimer = 0;
+  int _facingDirection = 1;
   static const double _coyoteDuration = 0.12;
+  static const int _platformResolvePasses = 4;
 
   /// 出生或穿模后，强制与平台对齐。
   void alignToPlatforms(Iterable<PlatformComponent> platforms) {
@@ -307,15 +309,16 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     final bool canJump = wasGrounded || _coyoteTimer > 0;
     isOnGround = wasGrounded;
     _isGrounded = false;
-    _applyHorizontalInput();
+    _applyHorizontalInput(dt);
     _applyJumpInput(canJump);
-    _updateAnimationState(wasGrounded);
     velocity.y += GameConstants.gravity * dt;
     if (velocity.y > GameConstants.maxFallSpeed) {
       velocity.y = GameConstants.maxFallSpeed;
     }
     position += velocity * dt;
-    if (wasGrounded) {
+    _resolvePlatformContacts();
+    _updateAnimationState(wasGrounded);
+    if (wasGrounded || _isGrounded) {
       _coyoteTimer = _coyoteDuration;
     } else {
       _coyoteTimer -= dt;
@@ -326,18 +329,42 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     if (!inputState.jumpHeld) {
       _hasJumpedThisPress = false;
     }
-    _wasOnGround = wasGrounded;
+    _wasOnGround = wasGrounded || _isGrounded;
   }
 
-  void _applyHorizontalInput() {
-    double direction = 0;
+  void _applyHorizontalInput(double dt) {
+    double targetVelocityX = 0;
     if (inputState.moveLeft) {
-      direction -= 1;
+      targetVelocityX -= GameConstants.playerMoveSpeed;
     }
     if (inputState.moveRight) {
-      direction += 1;
+      targetVelocityX += GameConstants.playerMoveSpeed;
     }
-    velocity.x = direction * GameConstants.playerMoveSpeed;
+    if (targetVelocityX == 0) {
+      if (velocity.x.abs() <= 8) {
+        velocity.x = 0;
+      } else {
+        final double friction = GameConstants.playerMoveFriction * dt;
+        if (velocity.x.abs() <= friction) {
+          velocity.x = 0;
+        } else {
+          velocity.x -= velocity.x.sign * friction;
+        }
+      }
+      return;
+    }
+    velocity.x = _moveTowards(
+      velocity.x,
+      targetVelocityX,
+      GameConstants.playerMoveAcceleration * dt,
+    );
+  }
+
+  double _moveTowards(double current, double target, double maxDelta) {
+    if ((target - current).abs() <= maxDelta) {
+      return target;
+    }
+    return current + (target - current).sign * maxDelta;
   }
 
   void _applyJumpInput(bool canJump) {
@@ -358,22 +385,44 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     if (animations == null || animations!.isEmpty) {
       return;
     }
-    if (!wasGrounded && velocity.y.abs() > 1) {
+    if (inputState.moveLeft && !inputState.moveRight) {
+      _facingDirection = -1;
+    } else if (inputState.moveRight && !inputState.moveLeft) {
+      _facingDirection = 1;
+    }
+    scale.x = _facingDirection.toDouble();
+    final bool isAirborne = !wasGrounded && !_isGrounded && velocity.y.abs() > 12;
+    if (isAirborne) {
       current = PlayerState.jump;
       return;
     }
-    if (inputState.moveLeft) {
-      scale.x = -1;
+    if (inputState.moveLeft || inputState.moveRight) {
       current = PlayerState.run;
       return;
     }
-    if (inputState.moveRight) {
-      scale.x = 1;
-      current = PlayerState.run;
-      return;
-    }
-    scale.x = 1;
     current = PlayerState.idle;
+  }
+
+  void _resolvePlatformContacts() {
+    final Iterable<PlatformComponent> platforms =
+        parent?.children.whereType<PlatformComponent>() ??
+        const <PlatformComponent>[];
+    for (int pass = 0; pass < _platformResolvePasses; pass++) {
+      var hasResolved = false;
+      for (final PlatformComponent platform in platforms) {
+        if (_resolvePlatformCollision(platform)) {
+          hasResolved = true;
+        }
+      }
+      if (!hasResolved) {
+        break;
+      }
+    }
+  }
+
+  void _markGrounded() {
+    _isGrounded = true;
+    isOnGround = true;
   }
 
   @override
@@ -399,7 +448,7 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     Set<Vector2> intersectionPoints,
   ) {
     if (other is PlatformComponent) {
-      _resolvePlatformCollision(other);
+      return;
     } else if (other is CoinComponent) {
       other.collect();
     } else if (other is EnemyComponent) {
@@ -411,7 +460,7 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     }
   }
 
-  void _resolvePlatformCollision(PlatformComponent platform) {
+  bool _resolvePlatformCollision(PlatformComponent platform) {
     final double playerLeft = position.x;
     final double playerRight = position.x + size.x;
     final double playerTop = position.y;
@@ -420,38 +469,49 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     final double platRight = platform.position.x + platform.size.x;
     final double platTop = platform.position.y;
     final double platBottom = platform.position.y + platform.size.y;
-    if (playerRight <= platLeft || playerLeft >= platRight) {
-      return;
+    if (playerRight <= platLeft ||
+        playerLeft >= platRight ||
+        playerBottom <= platTop ||
+        playerTop >= platBottom) {
+      return false;
     }
-    if (playerBottom <= platTop || playerTop >= platBottom) {
-      return;
-    }
+    final double overlapLeft = playerRight - platLeft;
+    final double overlapRight = platRight - playerLeft;
     final double overlapTop = playerBottom - platTop;
     final double overlapBottom = platBottom - playerTop;
-    if (velocity.y >= 0 && overlapTop <= overlapBottom) {
+    final double minHorizontal = overlapLeft < overlapRight ? overlapLeft : overlapRight;
+    final double minVertical = overlapTop < overlapBottom ? overlapTop : overlapBottom;
+    final bool canLandOnTop = velocity.y >= 0 &&
+        playerTop <= platTop + GameConstants.groundSnapTolerance &&
+        overlapTop <= GameConstants.groundSnapTolerance + 8;
+    if (canLandOnTop && minVertical <= minHorizontal + 2) {
+      final bool justLanded = !_wasOnGround;
       position.y = platTop - size.y;
       velocity.y = 0;
-      if (!_wasOnGround) {
+      if (justLanded) {
         onLand?.call(Vector2(position.x + size.x / 2, position.y + size.y));
       }
-      _isGrounded = true;
-      isOnGround = true;
-      return;
+      _markGrounded();
+      return true;
     }
-    if (velocity.y < 0 && overlapBottom < overlapTop) {
+    if (minHorizontal <= minVertical) {
+      if (overlapLeft < overlapRight) {
+        position.x = platLeft - size.x;
+      } else {
+        position.x = platRight;
+      }
+      velocity.x = 0;
+      return true;
+    }
+    if (velocity.y < 0) {
       position.y = platBottom;
       velocity.y = 0;
-      return;
+      return true;
     }
-    if (velocity.y >= 0) {
-      position.y = platTop - size.y;
-      velocity.y = 0;
-      if (!_wasOnGround) {
-        onLand?.call(Vector2(position.x + size.x / 2, position.y + size.y));
-      }
-      _isGrounded = true;
-      isOnGround = true;
-    }
+    position.y = platTop - size.y;
+    velocity.y = 0;
+    _markGrounded();
+    return true;
   }
 
   void _resolveEnemyCollision(EnemyComponent enemy) {
