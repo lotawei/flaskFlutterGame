@@ -58,7 +58,27 @@ void main() {
     });
 
     test('从下方跳穿台阶不会顶头卡住', () {
-      final PlatformPhysicsSolver solver = buildSolver();
+      final PlatformPhysicsSolver solver = PlatformPhysicsSolver(
+        platforms: <PlatformSurface>[
+          const PlatformSurface(
+            left: 0,
+            top: 400,
+            right: 320,
+            bottom: 432,
+            isOneWay: true,
+          ),
+          const PlatformSurface(
+            left: 256,
+            top: 368,
+            right: 384,
+            bottom: 400,
+            isOneWay: true,
+          ),
+        ],
+        worldWidth: 800,
+        worldHeight: 480,
+        gravityDirection: 1,
+      );
       final PlatformPhysicsResult result = solver.simulate(
         x: 280,
         y: 410,
@@ -309,6 +329,81 @@ void main() {
         wasGrounded: false,
       );
       expect(result.isGrounded, isFalse);
+    });
+
+    test('高速下落穿进实心墙必须被推到顶面', () {
+      final PlatformPhysicsSolver solver = PlatformPhysicsSolver(
+        platforms: <PlatformSurface>[
+          const PlatformSurface(
+            left: 0,
+            top: 400,
+            right: 320,
+            bottom: 464,
+            isOneWay: false,
+          ),
+        ],
+        worldWidth: 800,
+        worldHeight: 480,
+        gravityDirection: 1,
+      );
+      final PlatformPhysicsResult result = solver.simulate(
+        x: 100,
+        y: 430,
+        velocityX: 0,
+        velocityY: 640,
+        dt: 0.05,
+        wasGrounded: false,
+      );
+      expect(result.y + 28, lessThanOrEqualTo(400.5));
+      expect(result.y, greaterThanOrEqualTo(372));
+    });
+
+    test('静止卡在实心墙内必须被推出', () {
+      final PlatformPhysicsSolver solver = PlatformPhysicsSolver(
+        platforms: <PlatformSurface>[
+          const PlatformSurface(
+            left: 0,
+            top: 400,
+            right: 320,
+            bottom: 464,
+            isOneWay: false,
+          ),
+        ],
+        worldWidth: 800,
+        worldHeight: 480,
+        gravityDirection: 1,
+      );
+      final PlatformPhysicsResult result = solver.simulate(
+        x: 100,
+        y: 440,
+        velocityX: 0,
+        velocityY: 0,
+        dt: 0.016,
+        wasGrounded: false,
+      );
+      expect(result.y + 28, lessThanOrEqualTo(400.5));
+    });
+
+    test('snapToValid 必须把卡在墙内的玩家推出', () {
+      final PlatformPhysicsSolver solver = PlatformPhysicsSolver(
+        platforms: <PlatformSurface>[
+          const PlatformSurface(
+            left: 0,
+            top: 400,
+            right: 320,
+            bottom: 464,
+            isOneWay: false,
+          ),
+        ],
+        worldWidth: 800,
+        worldHeight: 480,
+        gravityDirection: 1,
+      );
+      final PlatformPhysicsResult result = solver.snapToValid(
+        x: 100,
+        y: 440,
+      );
+      expect(result.y + 28, lessThanOrEqualTo(400.5));
     });
   });
 }

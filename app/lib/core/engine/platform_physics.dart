@@ -62,8 +62,6 @@ class PlatformPhysicsSolver {
 
   static const int _maxDepenetrationPasses = 8;
   static const double _sideWallMargin = 6;
-  static const double _feetProbeInset = 6;
-  static const double _minFeetSupportWidth = 14;
 
   PlatformPhysicsResult simulate({
     required double x,
@@ -112,6 +110,12 @@ class PlatformPhysicsSolver {
         break;
       }
     }
+    _forceExitSolidPlatforms(
+      px: () => px,
+      py: () => py,
+      setPx: (double v) => px = v,
+      setPy: (double v) => py = v,
+    );
     px = _clampWorldX(px);
     final bool isGrounded = _probeGrounded(px, py);
     final bool justLanded = isGrounded && !wasGrounded;
@@ -143,6 +147,12 @@ class PlatformPhysicsSolver {
         break;
       }
     }
+    _forceExitSolidPlatforms(
+      px: () => px,
+      py: () => py,
+      setPx: (double v) => px = v,
+      setPy: (double v) => py = v,
+    );
     px = _clampWorldX(px);
     final bool isGrounded = _probeGrounded(px, py);
     if (isGrounded) {
@@ -348,101 +358,79 @@ class PlatformPhysicsSolver {
     bool wasRising,
   ) {
     if (gravityDirection > 0) {
-      if (_allowsPassThroughFromBelow(platform, py(), wasRising)) {
-        return false;
-      }
-      if (wasRising &&
-          overlap.overlapTop <= GameConstants.groundSnapTolerance &&
-          py() + playerHeight <= platform.top + GameConstants.groundSnapTolerance) {
-        return false;
-      }
-      if (!wasRising && _canLandOnTop(px(), py(), platform, overlap)) {
+      if (platform.isOneWay) {
+        if (wasRising) {
+          return false;
+        }
+        if (!_canLandOnTop(px(), py(), platform, overlap)) {
+          return false;
+        }
         setPy(platform.top - playerHeight);
         return true;
       }
-      if (wasRising && _resolveHeadBumpFromBelow(platform, overlap, py, setPy)) {
+      if (!wasRising) {
+        setPy(platform.top - playerHeight);
         return true;
       }
-      return false;
-    }
-    if (_allowsPassThroughFromAbove(platform, py(), wasRising)) {
-      return false;
-    }
-    if (!wasRising &&
-        overlap.overlapBottom <= GameConstants.groundSnapTolerance &&
-        py() >= platform.bottom - GameConstants.groundSnapTolerance) {
-      return false;
-    }
-    if (wasRising && _canLandOnBottom(px(), py(), platform, overlap)) {
       setPy(platform.bottom);
       return true;
     }
-    if (!wasRising && _resolveHeadBumpFromAbove(platform, overlap, py, setPy)) {
+    if (platform.isOneWay) {
+      if (!wasRising) {
+        return false;
+      }
+      if (!_canLandOnBottom(px(), py(), platform, overlap)) {
+        return false;
+      }
+      setPy(platform.bottom);
       return true;
     }
-    return false;
-  }
-
-  bool _allowsPassThroughFromBelow(
-    PlatformSurface platform,
-    double playerY,
-    bool wasRising,
-  ) {
-    if (!wasRising || !platform.isOneWay) {
-      return false;
-    }
-    return playerY + playerHeight > platform.top + 1 &&
-        playerY < platform.bottom - 1;
-  }
-
-  bool _allowsPassThroughFromAbove(
-    PlatformSurface platform,
-    double playerY,
-    bool wasRising,
-  ) {
-    if (wasRising || !platform.isOneWay) {
-      return false;
-    }
-    return playerY < platform.bottom - 1 &&
-        playerY + playerHeight > platform.top + 1;
-  }
-
-  bool _resolveHeadBumpFromBelow(
-    PlatformSurface platform,
-    _OverlapInfo overlap,
-    double Function() py,
-    void Function(double) setPy,
-  ) {
-    if (platform.isOneWay) {
-      return false;
-    }
-    if (py() + playerHeight >= platform.top) {
-      return false;
-    }
-    if (overlap.penetrationYBottom >= overlap.penetrationYTop) {
-      return false;
-    }
-    setPy(platform.bottom);
-    return true;
-  }
-
-  bool _resolveHeadBumpFromAbove(
-    PlatformSurface platform,
-    _OverlapInfo overlap,
-    double Function() py,
-    void Function(double) setPy,
-  ) {
-    if (platform.isOneWay) {
-      return false;
-    }
-    if (py() <= platform.bottom) {
-      return false;
-    }
-    if (overlap.penetrationYTop >= overlap.penetrationYBottom) {
-      return false;
+    if (wasRising) {
+      setPy(platform.bottom);
+      return true;
     }
     setPy(platform.top - playerHeight);
     return true;
+  }
+
+  void _forceExitSolidPlatforms({
+    required double Function() px,
+    required double Function() py,
+    required void Function(double) setPx,
+    required void Function(double) setPy,
+  }) {
+    for (int pass = 0; pass < _maxDepenetrationPasses; pass++) {
+      bool anyOverlap = false;
+      for (final PlatformSurface platform in platforms) {
+        if (platform.isOneWay) {
+          continue;
+        }
+        final _OverlapInfo? overlap = _computeOverlap(px(), py(), platform);
+        if (overlap == null) {
+          continue;
+        }
+        anyOverlap = true;
+        final double playerCenterX = px() + playerWidth / 2;
+        final bool centerInsideHorizontally =
+            playerCenterX > platform.left && playerCenterX < platform.right;
+        if (!centerInsideHorizontally &&
+            overlap.penetrationX < overlap.penetrationY) {
+          if (overlap.penetrationXLeft < overlap.penetrationXRight) {
+            setPx(platform.left - playerWidth);
+          } else {
+            setPx(platform.right);
+          }
+        } else if (gravityDirection > 0) {
+          setPy(platform.top - playerHeight);
+        } else {
+          setPy(platform.bottom);
+        }
+        break;
+      }
+      if (!anyOverlap) {
+        break;
+      }
+    }
   }
 
   bool _canLandOnTop(
@@ -485,21 +473,16 @@ class PlatformPhysicsSolver {
       if (overlap == null) {
         continue;
       }
-      if (gravityDirection > 0 &&
-          wasRising &&
-          _allowsPassThroughFromBelow(platform, py(), wasRising)) {
-        continue;
-      }
-      if (gravityDirection > 0 &&
-          wasRising &&
-          overlap.overlapTop <= GameConstants.groundSnapTolerance &&
-          py() + playerHeight <= platform.top + GameConstants.groundSnapTolerance + 4) {
-        continue;
-      }
-      if (gravityDirection < 0 &&
-          !wasRising &&
-          _allowsPassThroughFromAbove(platform, py(), wasRising)) {
-        continue;
+      if (platform.isOneWay) {
+        if (gravityDirection > 0) {
+          if (wasRising || !_canLandOnTop(px(), py(), platform, overlap)) {
+            continue;
+          }
+        } else {
+          if (!wasRising || !_canLandOnBottom(px(), py(), platform, overlap)) {
+            continue;
+          }
+        }
       }
       if (smallest == null || overlap.penetration < smallest.penetration) {
         smallest = overlap;
@@ -511,7 +494,10 @@ class PlatformPhysicsSolver {
     }
     final PlatformSurface platform = hitPlatform;
     final _OverlapInfo overlap = smallest;
-    if (overlap.penetrationX < overlap.penetrationY) {
+    final double playerCenterX = px() + playerWidth / 2;
+    final bool centerInsideHorizontally =
+        playerCenterX > platform.left && playerCenterX < platform.right;
+    if (!centerInsideHorizontally && overlap.penetrationX < overlap.penetrationY) {
       if (overlap.penetrationXLeft < overlap.penetrationXRight) {
         setPx(platform.left - playerWidth);
       } else {
@@ -520,34 +506,18 @@ class PlatformPhysicsSolver {
       return true;
     }
     if (gravityDirection > 0) {
-      if (!wasRising && _canLandOnTop(px(), py(), platform, overlap)) {
-        setPy(platform.top - playerHeight);
-        setPx(_clampXOnPlatform(px(), platform));
-        return true;
-      }
       if (wasRising) {
-        if (_resolveHeadBumpFromBelow(platform, overlap, py, setPy)) {
-          return true;
-        }
-        return false;
-      }
-      if (overlap.penetrationYBottom < overlap.penetrationYTop) {
         setPy(platform.bottom);
-        return true;
+      } else {
+        setPy(platform.top - playerHeight);
       }
-      setPy(platform.top - playerHeight);
       return true;
     }
-    if (!wasRising && _canLandOnBottom(px(), py(), platform, overlap)) {
+    if (wasRising) {
       setPy(platform.bottom);
-      setPx(_clampXOnPlatform(px(), platform));
-      return true;
-    }
-    if (overlap.penetrationYTop < overlap.penetrationYBottom) {
+    } else {
       setPy(platform.top - playerHeight);
-      return true;
     }
-    setPy(platform.bottom);
     return true;
   }
 
@@ -598,12 +568,12 @@ class PlatformPhysicsSolver {
   }
 
   bool _feetSupportedOnPlatform(double px, double py, PlatformSurface platform) {
-    final double feetLeft = px + _feetProbeInset;
-    final double feetRight = px + playerWidth - _feetProbeInset;
-    final double supportLeft = math.max(feetLeft, platform.left);
-    final double supportRight = math.min(feetRight, platform.right);
+    final double bodyLeft = px;
+    final double bodyRight = px + playerWidth;
+    final double supportLeft = math.max(bodyLeft, platform.left);
+    final double supportRight = math.min(bodyRight, platform.right);
     final double supportWidth = supportRight - supportLeft;
-    if (supportWidth < _minFeetSupportWidth) {
+    if (supportWidth < GameConstants.minPlatformSupportOverlap) {
       return false;
     }
     final double feetY = py + playerHeight;
@@ -614,12 +584,12 @@ class PlatformPhysicsSolver {
   }
 
   bool _headSupportedOnPlatform(double px, double py, PlatformSurface platform) {
-    final double headLeft = px + _feetProbeInset;
-    final double headRight = px + playerWidth - _feetProbeInset;
-    final double supportLeft = math.max(headLeft, platform.left);
-    final double supportRight = math.min(headRight, platform.right);
+    final double bodyLeft = px;
+    final double bodyRight = px + playerWidth;
+    final double supportLeft = math.max(bodyLeft, platform.left);
+    final double supportRight = math.min(bodyRight, platform.right);
     final double supportWidth = supportRight - supportLeft;
-    if (supportWidth < _minFeetSupportWidth) {
+    if (supportWidth < GameConstants.minPlatformSupportOverlap) {
       return false;
     }
     if (py > platform.bottom + 1) {
