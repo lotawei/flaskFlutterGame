@@ -584,10 +584,13 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     final double minHorizontal = overlapLeft < overlapRight ? overlapLeft : overlapRight;
     final double minVertical = overlapTop < overlapBottom ? overlapTop : overlapBottom;
     if (gravityDirection > 0) {
-      final bool canLandOnTop = velocity.y >= 0 &&
-          playerTop <= platTop + GameConstants.groundSnapTolerance &&
-          overlapTop <= GameConstants.groundSnapTolerance + 8;
-      if (canLandOnTop && minVertical <= minHorizontal + 2) {
+      if (velocity.y < 0 && playerBottom <= platTop + GameConstants.groundSnapTolerance) {
+        return false;
+      }
+      final bool shouldLandOnTop = overlapTop > 0 &&
+          overlapTop <= size.y + GameConstants.groundSnapTolerance + 8 &&
+          playerBottom >= platTop - 2;
+      if (shouldLandOnTop) {
         final bool justLanded = !_wasOnGround;
         position.y = platTop - size.y;
         velocity.y = 0;
@@ -598,10 +601,13 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
         return true;
       }
     } else {
-      final bool canLandOnBottom = velocity.y <= 0 &&
-          playerBottom >= platBottom - GameConstants.groundSnapTolerance &&
-          overlapBottom <= GameConstants.groundSnapTolerance + 8;
-      if (canLandOnBottom && minVertical <= minHorizontal + 2) {
+      if (velocity.y > 0 && playerTop >= platBottom - GameConstants.groundSnapTolerance) {
+        return false;
+      }
+      final bool shouldLandOnBottom = overlapBottom > 0 &&
+          overlapBottom <= size.y + GameConstants.groundSnapTolerance + 8 &&
+          playerTop <= platBottom + 2;
+      if (shouldLandOnBottom) {
         final bool justLanded = !_wasOnGround;
         position.y = platBottom;
         velocity.y = 0;
