@@ -16,41 +16,70 @@ class ResultView extends GetView<ResultController> {
       final bool isVictory = controller.isVictory;
       return SkyScaffold(
         appBar: AppBar(title: const Text('本局结算')),
-        body: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              _buildHero(isVictory),
-              const SizedBox(height: 20),
-              _buildQuoteCard(),
-              const SizedBox(height: 20),
-              _buildStatsCard(isVictory),
-              const Spacer(),
-              MemePrimaryButton(
-                label: '再来一局',
-                icon: Icons.replay_rounded,
-                isAccent: true,
-                onPressed: controller.replay,
+        body: Column(
+          children: <Widget>[
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    _buildHero(isVictory),
+                    const SizedBox(height: 16),
+                    _buildQuoteCard(),
+                    const SizedBox(height: 16),
+                    _buildStatsCard(isVictory),
+                  ],
+                ),
               ),
-              const SizedBox(height: 10),
-              OutlinedButton(
-                onPressed: controller.goHome,
-                child: const Text('回首页'),
-              ),
-            ],
-          ),
+            ),
+            _buildActionBar(context),
+          ],
         ),
       );
     });
+  }
+
+  Widget _buildActionBar(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        24,
+        12,
+        24,
+        12 + MediaQuery.paddingOf(context).bottom,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.88),
+        border: Border(
+          top: BorderSide(color: AppColors.outline.withValues(alpha: 0.35), width: 1.5),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          MemePrimaryButton(
+            label: '再来一局',
+            icon: Icons.replay_rounded,
+            isAccent: true,
+            onPressed: controller.replay,
+          ),
+          const SizedBox(height: 10),
+          OutlinedButton(
+            onPressed: controller.goHome,
+            child: const Text('回首页'),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildHero(bool isVictory) {
     return Column(
       children: <Widget>[
         Container(
-          width: 96,
-          height: 96,
+          width: 80,
+          height: 80,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: isVictory
@@ -68,21 +97,21 @@ class ResultView extends GetView<ResultController> {
           ),
           child: Icon(
             isVictory ? Icons.emoji_events_rounded : Icons.sentiment_dissatisfied_rounded,
-            size: 52,
+            size: 44,
             color: isVictory ? AppColors.accent : AppColors.textSecondary,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         Text(
           controller.titleText,
           style: const TextStyle(
-            fontSize: 26,
+            fontSize: 24,
             fontWeight: FontWeight.w900,
             color: AppColors.textPrimary,
           ),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         Text(
           controller.levelName.value,
           textAlign: TextAlign.center,
@@ -98,7 +127,7 @@ class ResultView extends GetView<ResultController> {
 
   Widget _buildQuoteCard() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(18),
@@ -115,9 +144,9 @@ class ResultView extends GetView<ResultController> {
         controller.memeQuote.value,
         textAlign: TextAlign.center,
         style: const TextStyle(
-          fontSize: 16,
+          fontSize: 15,
           fontWeight: FontWeight.w800,
-          height: 1.4,
+          height: 1.35,
           color: AppColors.textPrimary,
         ),
       ),
@@ -126,7 +155,7 @@ class ResultView extends GetView<ResultController> {
 
   Widget _buildStatsCard(bool isVictory) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.85),
         borderRadius: BorderRadius.circular(18),
@@ -174,7 +203,7 @@ class ResultView extends GetView<ResultController> {
             () => controller.isLoggedIn.value
                 ? const SizedBox.shrink()
                 : const Padding(
-                    padding: EdgeInsets.only(top: 8),
+                    padding: EdgeInsets.only(top: 6),
                     child: Text(
                       '登录后可同步进度到云端',
                       style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
@@ -203,20 +232,23 @@ class _StatRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           StatChip(emoji: emoji, label: label, highlight: highlight),
-          const Spacer(),
-          Flexible(
+          const SizedBox(width: 8),
+          Expanded(
             child: Text(
               value,
               textAlign: TextAlign.end,
               style: const TextStyle(
                 fontWeight: FontWeight.w800,
-                fontSize: 15,
+                fontSize: 14,
                 color: AppColors.textPrimary,
+                height: 1.3,
               ),
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
           ),
