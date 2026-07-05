@@ -182,12 +182,12 @@ class PlatformPhysicsSolver {
     double remaining = delta.abs();
     while (remaining > 0) {
       final double step = math.min(remaining, GameConstants.movementSubStep);
+      final double before = isHorizontal ? px() : py();
       if (isHorizontal) {
         setPx(px() + step * stepSign);
       } else {
         setPy(py() + step * stepSign);
       }
-      final double before = isHorizontal ? px() : py();
       _resolveContactsAlongAxis(
         isHorizontal: isHorizontal,
         px: px,
@@ -351,7 +351,7 @@ class PlatformPhysicsSolver {
           py() + playerHeight <= platform.top + GameConstants.groundSnapTolerance) {
         return false;
       }
-      if (_canLandOnTop(px(), py(), platform, overlap)) {
+      if (!wasRising && _canLandOnTop(px(), py(), platform, overlap)) {
         setPy(platform.top - playerHeight);
         return true;
       }
@@ -368,7 +368,7 @@ class PlatformPhysicsSolver {
         py() >= platform.bottom - GameConstants.groundSnapTolerance) {
       return false;
     }
-    if (_canLandOnBottom(px(), py(), platform, overlap)) {
+    if (wasRising && _canLandOnBottom(px(), py(), platform, overlap)) {
       setPy(platform.bottom);
       return true;
     }
@@ -433,6 +433,12 @@ class PlatformPhysicsSolver {
           _shouldPassThroughFromBelow(py(), platform)) {
         continue;
       }
+      if (gravityDirection > 0 &&
+          wasRising &&
+          overlap.overlapTop <= GameConstants.groundSnapTolerance &&
+          py() + playerHeight <= platform.top + GameConstants.groundSnapTolerance + 4) {
+        continue;
+      }
       if (gravityDirection < 0 &&
           !wasRising &&
           _shouldPassThroughFromAbove(py(), platform)) {
@@ -457,7 +463,7 @@ class PlatformPhysicsSolver {
       return true;
     }
     if (gravityDirection > 0) {
-      if (_canLandOnTop(px(), py(), platform, overlap)) {
+      if (!wasRising && _canLandOnTop(px(), py(), platform, overlap)) {
         setPy(platform.top - playerHeight);
         setPx(_clampXOnPlatform(px(), platform));
         return true;
@@ -472,7 +478,7 @@ class PlatformPhysicsSolver {
       setPy(platform.top - playerHeight);
       return true;
     }
-    if (_canLandOnBottom(px(), py(), platform, overlap)) {
+    if (!wasRising && _canLandOnBottom(px(), py(), platform, overlap)) {
       setPy(platform.bottom);
       setPx(_clampXOnPlatform(px(), platform));
       return true;
@@ -541,7 +547,8 @@ class PlatformPhysicsSolver {
       return false;
     }
     final double feetY = py + playerHeight;
-    return (feetY - platform.top).abs() <= GameConstants.groundSnapTolerance + 2;
+    return feetY >= platform.top - 2 &&
+        feetY <= platform.top + GameConstants.groundSnapTolerance + 2;
   }
 
   bool _headSupportedOnPlatform(double px, double py, PlatformSurface platform) {
@@ -553,7 +560,8 @@ class PlatformPhysicsSolver {
     if (supportWidth < GameConstants.minPlatformSupportOverlap) {
       return false;
     }
-    return (platform.bottom - py).abs() <= GameConstants.groundSnapTolerance + 2;
+    return py >= platform.bottom - GameConstants.groundSnapTolerance - 2 &&
+        py <= platform.bottom + 2;
   }
 
   double _clampXOnPlatform(double px, PlatformSurface platform) {

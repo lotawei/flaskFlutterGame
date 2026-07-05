@@ -113,5 +113,113 @@ void main() {
       expect(result.x, greaterThan(280));
       expect(result.x + 28 <= 256.1, isFalse);
     });
+
+    test('单帧起跳后应保留上升速度', () {
+      final PlatformPhysicsSolver solver = PlatformPhysicsSolver(
+        platforms: <PlatformSurface>[
+          const PlatformSurface(left: 0, top: 400, right: 800, bottom: 432),
+        ],
+        worldWidth: 800,
+        worldHeight: 480,
+        gravityDirection: 1,
+      );
+      final PlatformPhysicsResult result = solver.simulate(
+        x: 100,
+        y: 372,
+        velocityX: 0,
+        velocityY: -450,
+        dt: 1 / 60,
+        wasGrounded: false,
+      );
+      expect(result.velocityY, lessThan(-400));
+      expect(result.y, lessThan(372));
+    });
+
+    test('地面起跳应达到正常高度', () {
+      final PlatformPhysicsSolver solver = PlatformPhysicsSolver(
+        platforms: <PlatformSurface>[
+          const PlatformSurface(left: 0, top: 400, right: 800, bottom: 432),
+          const PlatformSurface(left: 256, top: 368, right: 384, bottom: 400),
+        ],
+        worldWidth: 800,
+        worldHeight: 480,
+        gravityDirection: 1,
+      );
+      double x = 280;
+      double y = 372;
+      double vy = 0;
+      bool grounded = true;
+      double minY = y;
+      const double dt = 1 / 60;
+      for (int frame = 0; frame < 90; frame++) {
+        if (grounded && frame == 0) {
+          vy = -450;
+          grounded = false;
+        }
+        vy += 980 * dt;
+        if (vy > 640) {
+          vy = 640;
+        }
+        final PlatformPhysicsResult result = solver.simulate(
+          x: x,
+          y: y,
+          velocityX: 0,
+          velocityY: vy,
+          dt: dt,
+          wasGrounded: grounded,
+        );
+        x = result.x;
+        y = result.y;
+        vy = result.velocityY;
+        grounded = result.isGrounded;
+        if (y < minY) {
+          minY = y;
+        }
+      }
+      final double apexHeight = 372 - minY;
+      expect(apexHeight, greaterThan(80));
+    });
+
+    test('开阔地面起跳应达到正常高度', () {
+      final PlatformPhysicsSolver solver = PlatformPhysicsSolver(
+        platforms: <PlatformSurface>[
+          const PlatformSurface(left: 0, top: 400, right: 800, bottom: 432),
+        ],
+        worldWidth: 800,
+        worldHeight: 480,
+        gravityDirection: 1,
+      );
+      double y = 372;
+      double vy = 0;
+      bool grounded = true;
+      double minY = y;
+      const double dt = 1 / 60;
+      for (int frame = 0; frame < 90; frame++) {
+        if (grounded && frame == 0) {
+          vy = -450;
+          grounded = false;
+        }
+        vy += 980 * dt;
+        if (vy > 640) {
+          vy = 640;
+        }
+        final PlatformPhysicsResult result = solver.simulate(
+          x: 100,
+          y: y,
+          velocityX: 0,
+          velocityY: vy,
+          dt: dt,
+          wasGrounded: grounded,
+        );
+        y = result.y;
+        vy = result.velocityY;
+        grounded = result.isGrounded;
+        if (y < minY) {
+          minY = y;
+        }
+      }
+      final double apexHeight = 372 - minY;
+      expect(apexHeight, greaterThan(80));
+    });
   });
 }
