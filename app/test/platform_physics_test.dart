@@ -10,8 +10,20 @@ void main() {
       return PlatformPhysicsSolver(
         platforms: platforms ??
             <PlatformSurface>[
-              const PlatformSurface(left: 0, top: 400, right: 320, bottom: 432),
-              const PlatformSurface(left: 256, top: 368, right: 384, bottom: 400),
+              const PlatformSurface(
+                left: 0,
+                top: 400,
+                right: 320,
+                bottom: 432,
+                isOneWay: false,
+              ),
+              const PlatformSurface(
+                left: 256,
+                top: 368,
+                right: 384,
+                bottom: 400,
+                isOneWay: true,
+              ),
             ],
         worldWidth: worldWidth,
         worldHeight: 480,
@@ -117,7 +129,13 @@ void main() {
     test('单帧起跳后应保留上升速度', () {
       final PlatformPhysicsSolver solver = PlatformPhysicsSolver(
         platforms: <PlatformSurface>[
-          const PlatformSurface(left: 0, top: 400, right: 800, bottom: 432),
+          const PlatformSurface(
+            left: 0,
+            top: 400,
+            right: 800,
+            bottom: 432,
+            isOneWay: false,
+          ),
         ],
         worldWidth: 800,
         worldHeight: 480,
@@ -138,8 +156,20 @@ void main() {
     test('地面起跳应达到正常高度', () {
       final PlatformPhysicsSolver solver = PlatformPhysicsSolver(
         platforms: <PlatformSurface>[
-          const PlatformSurface(left: 0, top: 400, right: 800, bottom: 432),
-          const PlatformSurface(left: 256, top: 368, right: 384, bottom: 400),
+          const PlatformSurface(
+            left: 0,
+            top: 400,
+            right: 800,
+            bottom: 432,
+            isOneWay: false,
+          ),
+          const PlatformSurface(
+            left: 256,
+            top: 368,
+            right: 384,
+            bottom: 400,
+            isOneWay: true,
+          ),
         ],
         worldWidth: 800,
         worldHeight: 480,
@@ -183,7 +213,13 @@ void main() {
     test('开阔地面起跳应达到正常高度', () {
       final PlatformPhysicsSolver solver = PlatformPhysicsSolver(
         platforms: <PlatformSurface>[
-          const PlatformSurface(left: 0, top: 400, right: 800, bottom: 432),
+          const PlatformSurface(
+            left: 0,
+            top: 400,
+            right: 800,
+            bottom: 432,
+            isOneWay: false,
+          ),
         ],
         worldWidth: 800,
         worldHeight: 480,
@@ -220,6 +256,59 @@ void main() {
       }
       final double apexHeight = 372 - minY;
       expect(apexHeight, greaterThan(80));
+    });
+
+    test('顶实心绿色砖块应弹回不能穿上去', () {
+      final PlatformPhysicsSolver solver = PlatformPhysicsSolver(
+        platforms: <PlatformSurface>[
+          const PlatformSurface(
+            left: 200,
+            top: 368,
+            right: 232,
+            bottom: 400,
+            isOneWay: false,
+          ),
+        ],
+        worldWidth: 800,
+        worldHeight: 480,
+        gravityDirection: 1,
+      );
+      final PlatformPhysicsResult result = solver.simulate(
+        x: 202,
+        y: 410,
+        velocityX: 0,
+        velocityY: -350,
+        dt: 0.016,
+        wasGrounded: false,
+      );
+      expect(result.y, greaterThanOrEqualTo(400));
+      expect(result.y, lessThan(410));
+    });
+
+    test('脚底悬空在砖面上方不算着地', () {
+      final PlatformPhysicsSolver solver = PlatformPhysicsSolver(
+        platforms: <PlatformSurface>[
+          const PlatformSurface(
+            left: 0,
+            top: 400,
+            right: 320,
+            bottom: 432,
+            isOneWay: false,
+          ),
+        ],
+        worldWidth: 800,
+        worldHeight: 480,
+        gravityDirection: 1,
+      );
+      final PlatformPhysicsResult result = solver.simulate(
+        x: 100,
+        y: 360,
+        velocityX: 0,
+        velocityY: 0,
+        dt: 0.016,
+        wasGrounded: false,
+      );
+      expect(result.isGrounded, isFalse);
     });
   });
 }

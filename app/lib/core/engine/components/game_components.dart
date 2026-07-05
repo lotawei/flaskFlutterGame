@@ -377,6 +377,7 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
             top: platform.position.y,
             right: platform.position.x + platform.size.x,
             bottom: platform.position.y + platform.size.y,
+            isOneWay: !platform.isGround,
           ),
         )
         .toList();

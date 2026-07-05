@@ -9,12 +9,15 @@ class PlatformSurface {
     required this.top,
     required this.right,
     required this.bottom,
+    this.isOneWay = false,
   });
 
   final double left;
   final double top;
   final double right;
   final double bottom;
+  /// 单向平台：可自下穿过；实心砖（绿色地面）为 false。
+  final bool isOneWay;
 
   double get width => right - left;
   double get height => bottom - top;
@@ -59,6 +62,8 @@ class PlatformPhysicsSolver {
 
   static const int _maxDepenetrationPasses = 8;
   static const double _sideWallMargin = 6;
+  static const double _feetProbeInset = 6;
+  static const double _minFeetSupportWidth = 14;
 
   PlatformPhysicsResult simulate({
     required double x,
@@ -343,7 +348,7 @@ class PlatformPhysicsSolver {
     bool wasRising,
   ) {
     if (gravityDirection > 0) {
-      if (wasRising && _shouldPassThroughFromBelow(py(), platform)) {
+      if (_allowsPassThroughFromBelow(platform, py(), wasRising)) {
         return false;
       }
       if (wasRising &&
@@ -355,12 +360,12 @@ class PlatformPhysicsSolver {
         setPy(platform.top - playerHeight);
         return true;
       }
-      if (wasRising && overlap.penetrationYBottom < overlap.penetrationYTop) {
-        return false;
+      if (wasRising && _resolveHeadBumpFromBelow(platform, overlap, py, setPy)) {
+        return true;
       }
       return false;
     }
-    if (!wasRising && _shouldPassThroughFromAbove(py(), platform)) {
+    if (_allowsPassThroughFromAbove(platform, py(), wasRising)) {
       return false;
     }
     if (!wasRising &&
@@ -372,20 +377,72 @@ class PlatformPhysicsSolver {
       setPy(platform.bottom);
       return true;
     }
-    if (!wasRising && overlap.penetrationYTop < overlap.penetrationYBottom) {
-      return false;
+    if (!wasRising && _resolveHeadBumpFromAbove(platform, overlap, py, setPy)) {
+      return true;
     }
     return false;
   }
 
-  bool _shouldPassThroughFromBelow(double playerY, PlatformSurface platform) {
+  bool _allowsPassThroughFromBelow(
+    PlatformSurface platform,
+    double playerY,
+    bool wasRising,
+  ) {
+    if (!wasRising || !platform.isOneWay) {
+      return false;
+    }
     return playerY + playerHeight > platform.top + 1 &&
         playerY < platform.bottom - 1;
   }
 
-  bool _shouldPassThroughFromAbove(double playerY, PlatformSurface platform) {
+  bool _allowsPassThroughFromAbove(
+    PlatformSurface platform,
+    double playerY,
+    bool wasRising,
+  ) {
+    if (wasRising || !platform.isOneWay) {
+      return false;
+    }
     return playerY < platform.bottom - 1 &&
         playerY + playerHeight > platform.top + 1;
+  }
+
+  bool _resolveHeadBumpFromBelow(
+    PlatformSurface platform,
+    _OverlapInfo overlap,
+    double Function() py,
+    void Function(double) setPy,
+  ) {
+    if (platform.isOneWay) {
+      return false;
+    }
+    if (py() + playerHeight >= platform.top) {
+      return false;
+    }
+    if (overlap.penetrationYBottom >= overlap.penetrationYTop) {
+      return false;
+    }
+    setPy(platform.bottom);
+    return true;
+  }
+
+  bool _resolveHeadBumpFromAbove(
+    PlatformSurface platform,
+    _OverlapInfo overlap,
+    double Function() py,
+    void Function(double) setPy,
+  ) {
+    if (platform.isOneWay) {
+      return false;
+    }
+    if (py() <= platform.bottom) {
+      return false;
+    }
+    if (overlap.penetrationYTop >= overlap.penetrationYBottom) {
+      return false;
+    }
+    setPy(platform.top - playerHeight);
+    return true;
   }
 
   bool _canLandOnTop(
@@ -430,7 +487,7 @@ class PlatformPhysicsSolver {
       }
       if (gravityDirection > 0 &&
           wasRising &&
-          _shouldPassThroughFromBelow(py(), platform)) {
+          _allowsPassThroughFromBelow(platform, py(), wasRising)) {
         continue;
       }
       if (gravityDirection > 0 &&
@@ -441,7 +498,7 @@ class PlatformPhysicsSolver {
       }
       if (gravityDirection < 0 &&
           !wasRising &&
-          _shouldPassThroughFromAbove(py(), platform)) {
+          _allowsPassThroughFromAbove(platform, py(), wasRising)) {
         continue;
       }
       if (smallest == null || overlap.penetration < smallest.penetration) {
@@ -469,6 +526,9 @@ class PlatformPhysicsSolver {
         return true;
       }
       if (wasRising) {
+        if (_resolveHeadBumpFromBelow(platform, overlap, py, setPy)) {
+          return true;
+        }
         return false;
       }
       if (overlap.penetrationYBottom < overlap.penetrationYTop) {
@@ -538,30 +598,34 @@ class PlatformPhysicsSolver {
   }
 
   bool _feetSupportedOnPlatform(double px, double py, PlatformSurface platform) {
-    final double bodyLeft = px;
-    final double bodyRight = px + playerWidth;
-    final double supportLeft = math.max(bodyLeft, platform.left);
-    final double supportRight = math.min(bodyRight, platform.right);
+    final double feetLeft = px + _feetProbeInset;
+    final double feetRight = px + playerWidth - _feetProbeInset;
+    final double supportLeft = math.max(feetLeft, platform.left);
+    final double supportRight = math.min(feetRight, platform.right);
     final double supportWidth = supportRight - supportLeft;
-    if (supportWidth < GameConstants.minPlatformSupportOverlap) {
+    if (supportWidth < _minFeetSupportWidth) {
       return false;
     }
     final double feetY = py + playerHeight;
-    return feetY >= platform.top - 2 &&
-        feetY <= platform.top + GameConstants.groundSnapTolerance + 2;
+    if (feetY < platform.top - 1) {
+      return false;
+    }
+    return feetY <= platform.top + GameConstants.groundFeetTolerance;
   }
 
   bool _headSupportedOnPlatform(double px, double py, PlatformSurface platform) {
-    final double bodyLeft = px;
-    final double bodyRight = px + playerWidth;
-    final double supportLeft = math.max(bodyLeft, platform.left);
-    final double supportRight = math.min(bodyRight, platform.right);
+    final double headLeft = px + _feetProbeInset;
+    final double headRight = px + playerWidth - _feetProbeInset;
+    final double supportLeft = math.max(headLeft, platform.left);
+    final double supportRight = math.min(headRight, platform.right);
     final double supportWidth = supportRight - supportLeft;
-    if (supportWidth < GameConstants.minPlatformSupportOverlap) {
+    if (supportWidth < _minFeetSupportWidth) {
       return false;
     }
-    return py >= platform.bottom - GameConstants.groundSnapTolerance - 2 &&
-        py <= platform.bottom + 2;
+    if (py > platform.bottom + 1) {
+      return false;
+    }
+    return py >= platform.bottom - GameConstants.groundFeetTolerance;
   }
 
   double _clampXOnPlatform(double px, PlatformSurface platform) {
