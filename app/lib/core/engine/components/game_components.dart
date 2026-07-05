@@ -311,7 +311,7 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     final bool canJump = wasGrounded || _coyoteTimer > 0;
     isOnGround = wasGrounded;
     _isGrounded = false;
-    _applyHorizontalInput(dt, wasGrounded);
+    _applyHorizontalInput(dt);
     _applyJumpInput(canJump);
     velocity.y += GameConstants.gravity * dt;
     if (velocity.y > GameConstants.maxFallSpeed) {
@@ -335,26 +335,13 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     _wasOnGround = wasGrounded || _isGrounded;
   }
 
-  void _applyHorizontalInput(double dt, bool wasGrounded) {
+  void _applyHorizontalInput(double dt) {
     double targetVelocityX = 0;
     if (inputState.moveLeft) {
       targetVelocityX -= GameConstants.playerMoveSpeed;
     }
     if (inputState.moveRight) {
       targetVelocityX += GameConstants.playerMoveSpeed;
-    }
-    if (wasGrounded || _isGrounded) {
-      final (double minX, double maxX)? supportRange = _computeSupportHorizontalRange();
-      if (supportRange != null) {
-        final double edgeMinX = supportRange.$1;
-        final double edgeMaxX = supportRange.$2 - size.x;
-        if (targetVelocityX < 0 && position.x <= edgeMinX + 1) {
-          targetVelocityX = 0;
-        }
-        if (targetVelocityX > 0 && position.x >= edgeMaxX - 1) {
-          targetVelocityX = 0;
-        }
-      }
     }
     if (targetVelocityX == 0) {
       if (velocity.x.abs() <= 8) {
@@ -439,61 +426,17 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
   void _clampHorizontalBounds() {
     final double worldMinX = 0;
     final double worldMaxX = worldWidth - size.x;
-    double clampMinX = worldMinX;
-    double clampMaxX = worldMaxX;
-    if (_isGrounded) {
-      final (double minX, double maxX)? supportRange = _computeSupportHorizontalRange();
-      if (supportRange != null) {
-        clampMinX = supportRange.$1 > worldMinX ? supportRange.$1 : worldMinX;
-        clampMaxX = supportRange.$2 - size.x;
-        if (clampMaxX > worldMaxX) {
-          clampMaxX = worldMaxX;
-        }
-      }
-    }
-    if (position.x < clampMinX) {
-      position.x = clampMinX;
+    if (position.x < worldMinX) {
+      position.x = worldMinX;
       if (velocity.x < 0) {
         velocity.x = 0;
       }
-    } else if (position.x > clampMaxX) {
-      position.x = clampMaxX;
+    } else if (position.x > worldMaxX) {
+      position.x = worldMaxX;
       if (velocity.x > 0) {
         velocity.x = 0;
       }
     }
-  }
-
-  (double minX, double maxX)? _computeSupportHorizontalRange() {
-    final Iterable<PlatformComponent> platforms =
-        parent?.children.whereType<PlatformComponent>() ??
-        const <PlatformComponent>[];
-    final double playerBottom = position.y + size.y;
-    final double playerLeft = position.x;
-    final double playerRight = position.x + size.x;
-    double? supportLeft;
-    double? supportRight;
-    for (final PlatformComponent platform in platforms) {
-      final double platTop = platform.position.y;
-      if ((playerBottom - platTop).abs() > GameConstants.groundFeetTolerance) {
-        continue;
-      }
-      final double platLeft = platform.position.x;
-      final double platRight = platform.position.x + platform.size.x;
-      if (playerRight <= platLeft || playerLeft >= platRight) {
-        continue;
-      }
-      supportLeft = supportLeft == null
-          ? platLeft
-          : (platLeft < supportLeft ? platLeft : supportLeft);
-      supportRight = supportRight == null
-          ? platRight
-          : (platRight > supportRight ? platRight : supportRight);
-    }
-    if (supportLeft == null || supportRight == null) {
-      return null;
-    }
-    return (supportLeft, supportRight);
   }
 
   void _markGrounded() {

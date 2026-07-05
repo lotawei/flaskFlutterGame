@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:meme_game/core/content/meme_quotes.dart';
+import 'package:meme_game/core/platform/screen_orientation_service.dart';
 
 /// 结算页控制器。
 class ResultController extends GetxController {
@@ -19,6 +20,7 @@ class ResultController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    ScreenOrientationService.lockPortrait();
     final Map<String, dynamic>? args =
         Get.arguments as Map<String, dynamic>?;
     reason.value = args?['reason'] as String? ?? 'victory';

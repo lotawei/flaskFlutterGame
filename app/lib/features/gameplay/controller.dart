@@ -7,6 +7,7 @@ import 'package:meme_game/core/observability/app_logger.dart';
 import 'package:meme_game/core/observability/trace_context.dart';
 import 'package:meme_game/core/level/level_rule_evaluator.dart';
 import 'package:meme_game/core/level/level_rule_model.dart';
+import 'package:meme_game/core/platform/screen_orientation_service.dart';
 import 'package:meme_game/data/repositories/level_repository.dart';
 import 'package:meme_game/data/repositories/progress_repository.dart';
 import 'package:meme_game/features/auth/auth_controller.dart';
@@ -50,6 +51,7 @@ class GameplayController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    ScreenOrientationService.lockLandscape();
     levelId = Get.parameters['levelId'] ?? 'demo_haqi';
     traceContext = TraceContext.create();
     loadLevel();
@@ -198,6 +200,7 @@ class GameplayController extends GetxController {
   @override
   void onClose() {
     inputState.reset();
+    ScreenOrientationService.lockPortrait();
     super.onClose();
   }
 }
