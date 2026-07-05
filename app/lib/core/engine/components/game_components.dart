@@ -268,10 +268,18 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
 
   Vector2 velocity = Vector2.zero();
   bool isOnGround = false;
+  bool _isGrounded = false;
   bool _hasJumpedThisPress = false;
   bool _wasOnGround = false;
   double _coyoteTimer = 0;
   static const double _coyoteDuration = 0.12;
+
+  /// 出生或穿模后，强制与平台对齐。
+  void alignToPlatforms(Iterable<PlatformComponent> platforms) {
+    for (final PlatformComponent platform in platforms) {
+      _resolvePlatformCollision(platform);
+    }
+  }
 
   @override
   Future<void> onLoad() async {
@@ -295,16 +303,19 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
   @override
   void update(double dt) {
     super.update(dt);
-    isOnGround = false;
+    final bool wasGrounded = _isGrounded;
+    final bool canJump = wasGrounded || _coyoteTimer > 0;
+    isOnGround = wasGrounded;
+    _isGrounded = false;
     _applyHorizontalInput();
-    _applyJumpInput();
-    _updateAnimationState();
+    _applyJumpInput(canJump);
+    _updateAnimationState(wasGrounded);
     velocity.y += GameConstants.gravity * dt;
     if (velocity.y > GameConstants.maxFallSpeed) {
       velocity.y = GameConstants.maxFallSpeed;
     }
     position += velocity * dt;
-    if (isOnGround) {
+    if (wasGrounded) {
       _coyoteTimer = _coyoteDuration;
     } else {
       _coyoteTimer -= dt;
@@ -315,10 +326,7 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     if (!inputState.jumpHeld) {
       _hasJumpedThisPress = false;
     }
-    if (isOnGround && !_wasOnGround) {
-      onLand?.call(Vector2(position.x + size.x / 2, position.y + size.y));
-    }
-    _wasOnGround = isOnGround;
+    _wasOnGround = wasGrounded;
   }
 
   void _applyHorizontalInput() {
@@ -332,30 +340,25 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     velocity.x = direction * GameConstants.playerMoveSpeed;
   }
 
-  void _applyJumpInput() {
+  void _applyJumpInput(bool canJump) {
     if (!inputState.jumpHeld) {
       return;
     }
-    if (isOnGround && !_hasJumpedThisPress) {
-      velocity.y = -GameConstants.playerJumpSpeed;
-      isOnGround = false;
-      _hasJumpedThisPress = true;
-      _coyoteTimer = 0;
+    if (!canJump || _hasJumpedThisPress) {
       return;
     }
-    if (_coyoteTimer > 0 && !_hasJumpedThisPress) {
-      velocity.y = -GameConstants.playerJumpSpeed;
-      isOnGround = false;
-      _hasJumpedThisPress = true;
-      _coyoteTimer = 0;
-    }
+    velocity.y = -GameConstants.playerJumpSpeed;
+    _isGrounded = false;
+    isOnGround = false;
+    _hasJumpedThisPress = true;
+    _coyoteTimer = 0;
   }
 
-  void _updateAnimationState() {
+  void _updateAnimationState(bool wasGrounded) {
     if (animations == null || animations!.isEmpty) {
       return;
     }
-    if (!isOnGround) {
+    if (!wasGrounded && velocity.y.abs() > 1) {
       current = PlayerState.jump;
       return;
     }
@@ -396,7 +399,7 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     Set<Vector2> intersectionPoints,
   ) {
     if (other is PlatformComponent) {
-      _resolvePlatformCollision(other, intersectionPoints);
+      _resolvePlatformCollision(other);
     } else if (other is CoinComponent) {
       other.collect();
     } else if (other is EnemyComponent) {
@@ -408,30 +411,46 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     }
   }
 
-  void _resolvePlatformCollision(
-    PlatformComponent platform,
-    Set<Vector2> intersectionPoints,
-  ) {
-    if (intersectionPoints.isEmpty) {
+  void _resolvePlatformCollision(PlatformComponent platform) {
+    final double playerLeft = position.x;
+    final double playerRight = position.x + size.x;
+    final double playerTop = position.y;
+    final double playerBottom = position.y + size.y;
+    final double platLeft = platform.position.x;
+    final double platRight = platform.position.x + platform.size.x;
+    final double platTop = platform.position.y;
+    final double platBottom = platform.position.y + platform.size.y;
+    if (playerRight <= platLeft || playerLeft >= platRight) {
       return;
     }
-    final double playerBottom = position.y + size.y;
-    final double platformTop = platform.position.y;
-    final bool isFalling = velocity.y >= 0;
-    final bool landingOnTop = isFalling &&
-        playerBottom - platformTop <= 24 &&
-        position.y + size.y / 2 <= platformTop + 8;
-    if (landingOnTop) {
-      position.y = platformTop - size.y;
+    if (playerBottom <= platTop || playerTop >= platBottom) {
+      return;
+    }
+    final double overlapTop = playerBottom - platTop;
+    final double overlapBottom = platBottom - playerTop;
+    if (velocity.y >= 0 && overlapTop <= overlapBottom) {
+      position.y = platTop - size.y;
       velocity.y = 0;
+      if (!_wasOnGround) {
+        onLand?.call(Vector2(position.x + size.x / 2, position.y + size.y));
+      }
+      _isGrounded = true;
       isOnGround = true;
       return;
     }
-    final double playerTop = position.y;
-    final double platformBottom = platform.position.y + platform.size.y;
-    if (velocity.y < 0 && playerTop < platformBottom) {
-      position.y = platformBottom;
+    if (velocity.y < 0 && overlapBottom < overlapTop) {
+      position.y = platBottom;
       velocity.y = 0;
+      return;
+    }
+    if (velocity.y >= 0) {
+      position.y = platTop - size.y;
+      velocity.y = 0;
+      if (!_wasOnGround) {
+        onLand?.call(Vector2(position.x + size.x / 2, position.y + size.y));
+      }
+      _isGrounded = true;
+      isOnGround = true;
     }
   }
 
@@ -444,6 +463,7 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     if (isStomp) {
       enemy.defeat();
       velocity.y = -GameConstants.playerJumpSpeed * 0.65;
+      _isGrounded = false;
       isOnGround = false;
       return;
     }

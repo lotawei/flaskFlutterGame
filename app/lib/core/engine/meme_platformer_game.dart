@@ -120,6 +120,9 @@ class MemePlatformerGame extends FlameGame
     );
     _player.position = _resolvePlayerSpawnPosition();
     world.add(_player);
+    _player.alignToPlatforms(
+      world.children.whereType<PlatformComponent>(),
+    );
     add(KeyboardListenerComponent());
     camera.follow(
       _player,
@@ -260,7 +263,7 @@ class MemePlatformerGame extends FlameGame
       }
     }
     final double spawnY = nearestPlatformTop != null
-        ? nearestPlatformTop - playerHeight
+        ? nearestPlatformTop - playerHeight - 1
         : spawnTop;
     return Vector2(spawnX, spawnY);
   }
