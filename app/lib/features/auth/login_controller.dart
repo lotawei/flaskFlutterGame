@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:meme_game/core/observability/trace_context.dart';
+import 'package:meme_game/core/ui/app_loading_service.dart';
 import 'package:meme_game/data/repositories/auth_repository.dart';
 import 'package:meme_game/features/auth/auth_controller.dart';
 
@@ -18,13 +19,14 @@ class LoginController extends GetxController {
   final TextEditingController usernameController = TextEditingController(text: 'demo');
   final TextEditingController passwordController = TextEditingController(text: 'demo123456');
   final TextEditingController displayNameController = TextEditingController();
-  final RxBool isLoading = false.obs;
   final RxBool isRegisterMode = false.obs;
   final RxString errorMessage = ''.obs;
 
   Future<void> submit() async {
-    isLoading.value = true;
     errorMessage.value = '';
+    AppLoadingService.to.show(
+      message: isRegisterMode.value ? '注册中…' : '登录中…',
+    );
     final TraceContext traceContext = TraceContext.create();
     try {
       if (isRegisterMode.value) {
@@ -50,7 +52,7 @@ class LoginController extends GetxController {
     } catch (err) {
       errorMessage.value = err.toString();
     } finally {
-      isLoading.value = false;
+      AppLoadingService.to.dismiss();
     }
   }
 

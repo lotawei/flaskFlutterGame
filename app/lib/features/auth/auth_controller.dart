@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:meme_game/core/observability/app_logger.dart';
 import 'package:meme_game/core/observability/trace_context.dart';
+import 'package:meme_game/core/ui/app_loading_service.dart';
 import 'package:meme_game/data/models/auth_model.dart';
 import 'package:meme_game/data/repositories/auth_repository.dart';
 import 'package:meme_game/data/repositories/progress_repository.dart';
@@ -34,6 +35,7 @@ class AuthController extends GetxController {
 
   Future<void> restoreSession() async {
     isRestoring.value = true;
+    AppLoadingService.to.show(message: '恢复登录…');
     final TraceContext traceContext = TraceContext.create();
     try {
       final UserProfileModel? profile = await _authRepository.restoreSession(
@@ -46,6 +48,7 @@ class AuthController extends GetxController {
       }
     } finally {
       isRestoring.value = false;
+      AppLoadingService.to.dismiss();
     }
   }
 

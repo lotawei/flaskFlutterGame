@@ -24,20 +24,13 @@ class HomeView extends GetView<HomeController> {
           ),
         ],
       ),
-      body: Obx(() {
-        if (controller.isLoading.value || controller.authController.isRestoring.value) {
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
-          );
-        }
-        return _buildContent();
-      }),
+      body: _buildContent(),
     );
   }
 
   Widget _buildContent() {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
       children: <Widget>[
         HomeHeroWidget(controller: controller),
         const SizedBox(height: 28),

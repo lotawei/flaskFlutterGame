@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meme_game/core/theme/app_colors.dart';
 
-/// 天空渐变背景 + 可选 AppBar。
+/// 天空渐变背景 + SafeArea + 可选 AppBar。
 class SkyScaffold extends StatelessWidget {
   const SkyScaffold({
     super.key,
@@ -17,12 +17,13 @@ class SkyScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: appBar != null,
       appBar: appBar,
       floatingActionButton: floatingActionButton,
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.skyGradient),
-        child: body,
+        child: SafeArea(
+          child: body,
+        ),
       ),
     );
   }

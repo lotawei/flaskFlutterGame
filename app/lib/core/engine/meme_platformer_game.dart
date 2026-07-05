@@ -1,6 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flame/events.dart';
+import 'package:flame/experimental.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:meme_game/core/engine/components/effect_components.dart';
@@ -100,8 +101,8 @@ class MemePlatformerGame extends FlameGame
     await super.onLoad();
     await spriteRegistry.preloadAllAssets();
     _loadMechanics();
-    camera.viewfinder.anchor = Anchor.topLeft;
-    add(
+    camera.viewfinder.anchor = Anchor.center;
+    world.add(
       SkyBackgroundComponent(
         worldWidth: level.worldWidth,
         worldHeight: level.worldHeight,
@@ -118,8 +119,18 @@ class MemePlatformerGame extends FlameGame
       onLand: _spawnLandDust,
     );
     _player.position = _resolvePlayerSpawnPosition();
-    add(_player);
+    world.add(_player);
     add(KeyboardListenerComponent());
+    camera.follow(
+      _player,
+      horizontalOnly: true,
+      maxSpeed: GameConstants.playerMoveSpeed * 3,
+      snap: true,
+    );
+    camera.setBounds(
+      Rectangle.fromLTWH(0, 0, level.worldWidth, level.worldHeight),
+      considerViewport: true,
+    );
     logger.info(
       module: 'core.engine',
       event: 'game.level.load.completed',
@@ -146,7 +157,7 @@ class MemePlatformerGame extends FlameGame
   void _buildLevel() {
     for (final LevelRectModel rect in level.platforms) {
       final bool isGround = rect.y >= level.heightTiles - 2;
-      add(
+      world.add(
         PlatformComponent(
           position: Vector2(
             rect.x * level.tileSize.toDouble(),
@@ -163,7 +174,7 @@ class MemePlatformerGame extends FlameGame
     }
     for (final LevelPointModel coin in level.coins) {
       _totalCoins += 1;
-      add(
+      world.add(
         CoinComponent(
           position: Vector2(
             coin.x * level.tileSize.toDouble() + 6,
@@ -177,7 +188,7 @@ class MemePlatformerGame extends FlameGame
     }
     for (final LevelEnemyModel enemy in level.enemies) {
       final double tile = level.tileSize.toDouble();
-      add(
+      world.add(
         EnemyComponent(
           position: Vector2(enemy.x * tile, enemy.y * tile),
           patrolMinX: (enemy.x - enemy.patrolLeft) * tile,
@@ -190,7 +201,7 @@ class MemePlatformerGame extends FlameGame
       );
     }
     for (final LevelPointModel fakeGoal in level.fakeGoals) {
-      add(
+      world.add(
         FakeGoalComponent(
           position: Vector2(
             fakeGoal.x * level.tileSize.toDouble(),
@@ -201,7 +212,7 @@ class MemePlatformerGame extends FlameGame
         ),
       );
     }
-    add(
+    world.add(
       GoalComponent(
         position: Vector2(
           level.goal.x * level.tileSize.toDouble(),
@@ -214,11 +225,11 @@ class MemePlatformerGame extends FlameGame
   }
 
   void _spawnCoinBurst(Vector2 worldPosition) {
-    add(CoinBurstEffect(position: worldPosition - Vector2.all(12)));
+    world.add(CoinBurstEffect(position: worldPosition - Vector2.all(12)));
   }
 
   void _spawnLandDust(Vector2 worldPosition) {
-    add(LandDustEffect(position: worldPosition - Vector2(16, 10)));
+    world.add(LandDustEffect(position: worldPosition - Vector2(16, 10)));
   }
 
   void _handleCoinCollected() {
@@ -282,7 +293,6 @@ class MemePlatformerGame extends FlameGame
     super.update(dt);
     _elapsedSeconds += dt;
     _updateTimeLimit();
-    _updateCamera();
   }
 
   void _updateTimeLimit() {
@@ -294,17 +304,6 @@ class MemePlatformerGame extends FlameGame
     if (remaining <= 0) {
       _finishGame(GameEndReason.timeUp);
     }
-  }
-
-  void _updateCamera() {
-    final double targetX =
-        (_player.position.x + _player.size.x / 2) - size.x / 2;
-    final double maxX = level.worldWidth - size.x;
-    final double clampedX = targetX.clamp(0, maxX > 0 ? maxX : 0);
-    final double currentX = camera.viewfinder.position.x;
-    final double nextX =
-        currentX + (clampedX - currentX) * GameConstants.cameraLerp * (1 / 60);
-    camera.viewfinder.position = Vector2(nextX, 0);
   }
 }
 

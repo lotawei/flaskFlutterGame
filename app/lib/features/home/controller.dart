@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:meme_game/core/observability/app_logger.dart';
 import 'package:meme_game/core/observability/trace_context.dart';
+import 'package:meme_game/core/ui/app_loading_service.dart';
 import 'package:meme_game/data/models/manifest_model.dart';
 import 'package:meme_game/data/repositories/content_repository.dart';
 import 'package:meme_game/features/auth/auth_controller.dart';
@@ -100,6 +101,7 @@ class HomeController extends GetxController {
     isLoading.value = true;
     hasError.value = false;
     errorMessage.value = '';
+    AppLoadingService.to.show(message: '加载梗包…');
     final TraceContext traceContext = TraceContext.create();
     lastTraceId.value = traceContext.traceId;
     _logger.info(
@@ -141,6 +143,7 @@ class HomeController extends GetxController {
       );
     } finally {
       isLoading.value = false;
+      AppLoadingService.to.dismiss();
     }
   }
 }

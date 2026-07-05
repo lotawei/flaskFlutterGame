@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
-import 'package:flame/sprite.dart';
+import 'package:flame/game.dart';
 import 'package:meme_game/core/engine/components/effect_components.dart';
 import 'package:meme_game/core/engine/game_constants.dart';
 import 'package:meme_game/core/engine/input/game_input_state.dart';
@@ -16,7 +16,7 @@ enum PlayerState {
 }
 
 /// 天空背景层（视差平铺）。
-class SkyBackgroundComponent extends PositionComponent {
+class SkyBackgroundComponent extends PositionComponent with HasGameReference<FlameGame> {
   SkyBackgroundComponent({
     required this.worldWidth,
     required this.worldHeight,
@@ -27,6 +27,7 @@ class SkyBackgroundComponent extends PositionComponent {
   final double worldHeight;
   final SpriteRegistry spriteRegistry;
   Sprite? _skySprite;
+  static const double _parallaxFactor = 0.28;
 
   @override
   Future<void> onLoad() async {
@@ -43,7 +44,10 @@ class SkyBackgroundComponent extends PositionComponent {
     }
     const double tileWidth = 320;
     const double tileHeight = 180;
-    for (double x = 0; x < size.x; x += tileWidth) {
+    final double parallaxOffset =
+        game.camera.viewfinder.position.x * _parallaxFactor;
+    final double startX = -parallaxOffset % tileWidth - tileWidth;
+    for (double x = startX; x < size.x + tileWidth; x += tileWidth) {
       for (double y = 0; y < size.y; y += tileHeight) {
         _skySprite!.render(
           canvas,

@@ -22,7 +22,7 @@ class LoginView extends GetView<LoginController> {
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+        padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
         children: <Widget>[
           _buildHeader(),
           const SizedBox(height: 24),
@@ -95,8 +95,7 @@ class LoginView extends GetView<LoginController> {
             () => MemePrimaryButton(
               label: controller.isRegisterMode.value ? '注册并登录' : '登录',
               icon: Icons.login_rounded,
-              isLoading: controller.isLoading.value,
-              onPressed: controller.isLoading.value ? null : controller.submit,
+              onPressed: controller.submit,
             ),
           ),
           const SizedBox(height: 8),

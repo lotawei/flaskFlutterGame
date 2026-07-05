@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:meme_game/app/app_module.dart';
 import 'package:meme_game/core/theme/app_theme.dart';
+import 'package:meme_game/core/ui/app_loading_overlay.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +22,14 @@ class MemeGameApp extends StatelessWidget {
       initialRoute: '/',
       getPages: AppModule.pages,
       debugShowCheckedModeBanner: false,
+      builder: (BuildContext context, Widget? child) {
+        return Stack(
+          children: <Widget>[
+            if (child != null) child,
+            const AppLoadingOverlay(),
+          ],
+        );
+      },
     );
   }
 }

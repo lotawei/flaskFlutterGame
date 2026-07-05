@@ -5,6 +5,7 @@ import 'package:meme_game/core/observability/app_logger.dart';
 import 'package:meme_game/data/repositories/auth_repository.dart';
 import 'package:meme_game/data/repositories/progress_repository.dart';
 import 'package:meme_game/data/services/auth_token_storage.dart';
+import 'package:meme_game/core/ui/app_loading_service.dart';
 import 'package:meme_game/features/auth/auth_controller.dart';
 import 'package:meme_game/features/auth/login_binding.dart';
 import 'package:meme_game/features/auth/login_view.dart';
@@ -36,6 +37,7 @@ class AppModule {
       progressRepository: progressRepository,
       logger: logger,
     );
+    Get.put<AppLoadingService>(AppLoadingService(), permanent: true);
     Get.put<AppConfig>(config, permanent: true);
     Get.put<AppLogger>(logger, permanent: true);
     Get.put<AuthTokenStorage>(tokenStorage, permanent: true);
