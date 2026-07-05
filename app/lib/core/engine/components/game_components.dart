@@ -430,12 +430,17 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     } else if (velocity.y < -GameConstants.maxFallSpeed) {
       velocity.y = -GameConstants.maxFallSpeed;
     }
-    position.x += velocity.x * dt;
-    _resolvePlatformContacts(_CollisionAxis.horizontal);
+    _moveAlongAxis(
+      axis: _CollisionAxis.horizontal,
+      delta: velocity.x * dt,
+    );
     _clampHorizontalBounds();
-    position.y += velocity.y * dt;
-    _resolvePlatformContacts(_CollisionAxis.vertical);
+    _moveAlongAxis(
+      axis: _CollisionAxis.vertical,
+      delta: velocity.y * dt,
+    );
     _enforcePlatformEdgeSupport();
+    _resolvePlatformPenetration();
     _updateAnimationState(wasGrounded);
     if (wasGrounded || _isGrounded) {
       _coyoteTimer = _coyoteDuration;
@@ -454,24 +459,24 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
   }
 
   void _applyHorizontalInput(double dt) {
+    final bool isGroundedMove = _isGrounded || _wasOnGround;
+    if (!inputState.moveLeft && !inputState.moveRight) {
+      velocity.x = 0;
+      return;
+    }
     double targetVelocityX = 0;
     if (inputState.moveLeft) {
-      targetVelocityX -= GameConstants.playerMoveSpeed;
+      targetVelocityX -= isGroundedMove
+          ? GameConstants.playerMoveSpeed
+          : GameConstants.playerAirMoveSpeed;
     }
     if (inputState.moveRight) {
-      targetVelocityX += GameConstants.playerMoveSpeed;
+      targetVelocityX += isGroundedMove
+          ? GameConstants.playerMoveSpeed
+          : GameConstants.playerAirMoveSpeed;
     }
-    if (targetVelocityX == 0) {
-      if (velocity.x.abs() <= 8) {
-        velocity.x = 0;
-      } else {
-        final double friction = GameConstants.playerMoveFriction * dt;
-        if (velocity.x.abs() <= friction) {
-          velocity.x = 0;
-        } else {
-          velocity.x -= velocity.x.sign * friction;
-        }
-      }
+    if (isGroundedMove) {
+      velocity.x = targetVelocityX;
       return;
     }
     velocity.x = _moveTowards(
@@ -479,6 +484,60 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
       targetVelocityX,
       GameConstants.playerMoveAcceleration * dt,
     );
+  }
+
+  void _moveAlongAxis({
+    required _CollisionAxis axis,
+    required double delta,
+  }) {
+    if (delta.abs() < 0.001) {
+      return;
+    }
+    final double stepSign = delta.sign;
+    double remaining = delta.abs();
+    while (remaining > 0) {
+      final double step = remaining < GameConstants.movementSubStep
+          ? remaining
+          : GameConstants.movementSubStep;
+      final double beforePosition = axis == _CollisionAxis.horizontal
+          ? position.x
+          : position.y;
+      if (axis == _CollisionAxis.horizontal) {
+        position.x += step * stepSign;
+      } else {
+        position.y += step * stepSign;
+      }
+      _resolvePlatformContacts(axis);
+      final double afterPosition = axis == _CollisionAxis.horizontal
+          ? position.x
+          : position.y;
+      if ((afterPosition - beforePosition).abs() < 0.01 && step > 0.01) {
+        if (axis == _CollisionAxis.horizontal) {
+          velocity.x = 0;
+        } else {
+          velocity.y = 0;
+        }
+        break;
+      }
+      remaining -= step;
+    }
+  }
+
+  void _resolvePlatformPenetration() {
+    for (int pass = 0; pass < _platformResolvePasses; pass++) {
+      var hasResolved = false;
+      for (final PlatformComponent platform in _platforms) {
+        if (_resolvePlatformCollision(platform, _CollisionAxis.horizontal)) {
+          hasResolved = true;
+        }
+        if (_resolvePlatformCollision(platform, _CollisionAxis.vertical)) {
+          hasResolved = true;
+        }
+      }
+      if (!hasResolved) {
+        break;
+      }
+    }
   }
 
   double _moveTowards(double current, double target, double maxDelta) {
@@ -593,9 +652,9 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
         isOnGround = false;
         return;
       }
-      final double maxOverhang = size.x - GameConstants.minPlatformSupportOverlap;
-      final double minX = support.left - maxOverhang;
-      final double maxX = support.right - size.x + maxOverhang;
+      final double maxOverhang = 0;
+      final double minX = support.left;
+      final double maxX = support.right - size.x;
       if (position.x < minX) {
         position.x = minX;
         if (velocity.x < 0) {
@@ -615,9 +674,9 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
       isOnGround = false;
       return;
     }
-    final double maxOverhang = size.x - GameConstants.minPlatformSupportOverlap;
-    final double minX = ceilingSupport.left - maxOverhang;
-    final double maxX = ceilingSupport.right - size.x + maxOverhang;
+    final double maxOverhang = 0;
+    final double minX = ceilingSupport.left;
+    final double maxX = ceilingSupport.right - size.x;
     if (position.x < minX) {
       position.x = minX;
       if (velocity.x < 0) {
@@ -689,6 +748,18 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
       }
     }
     return bestSupport;
+  }
+
+  double _clampXToPlatform(double platLeft, double platRight) {
+    final double minX = platLeft;
+    final double maxX = platRight - size.x;
+    if (position.x < minX) {
+      return minX;
+    }
+    if (position.x > maxX) {
+      return maxX;
+    }
+    return position.x;
   }
 
   double _computeHorizontalOverlap(
@@ -786,6 +857,8 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
       );
     }
     return _resolveVerticalPlatformCollision(
+      platLeft: platLeft,
+      platRight: platRight,
       platTop: platTop,
       platBottom: platBottom,
       overlapTop: overlapTop,
@@ -805,14 +878,16 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     required double minHorizontal,
     required double minVertical,
   }) {
-    if (gravityDirection > 0 && overlapTop > GameConstants.groundSnapTolerance + 8) {
+    final double playerBottom = position.y + size.y;
+    if (gravityDirection > 0 &&
+        velocity.y < 0 &&
+        overlapTop <= GameConstants.groundSnapTolerance &&
+        playerBottom <= platTop + GameConstants.groundSnapTolerance) {
       return false;
     }
-    if (gravityDirection < 0 &&
-        overlapTop < size.y - GameConstants.groundSnapTolerance - 8) {
-      return false;
-    }
-    if (minHorizontal > minVertical + GameConstants.sideCollisionBias) {
+    final bool isSideContact = playerBottom > platTop + 2 ||
+        minHorizontal <= minVertical + GameConstants.sideCollisionBias;
+    if (!isSideContact) {
       return false;
     }
     if (overlapLeft < overlapRight) {
@@ -825,6 +900,8 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
   }
 
   bool _resolveVerticalPlatformCollision({
+    required double platLeft,
+    required double platRight,
     required double platTop,
     required double platBottom,
     required double overlapTop,
@@ -840,16 +917,27 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
         return false;
       }
       final bool shouldLandOnTop = overlapTop > 0 &&
-          overlapTop <= GameConstants.groundSnapTolerance + 8;
-      if (shouldLandOnTop) {
+          overlapTop <= GameConstants.groundSnapTolerance + 6;
+      final double overlapWidth = _computeHorizontalOverlap(
+        position.x,
+        position.x + size.x,
+        platLeft,
+        platRight,
+      );
+      if (shouldLandOnTop &&
+          overlapWidth >= GameConstants.minPlatformSupportOverlap) {
         final bool justLanded = !_wasOnGround;
         position.y = platTop - size.y;
+        position.x = _clampXToPlatform(platLeft, platRight);
         velocity.y = 0;
         if (justLanded) {
           onLand?.call(Vector2(position.x + size.x / 2, position.y + size.y));
         }
         _markGrounded();
         return true;
+      }
+      if (shouldLandOnTop) {
+        return false;
       }
       if (minHorizontal + GameConstants.sideCollisionBias <= minVertical) {
         return false;
@@ -872,16 +960,27 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
       return false;
     }
     final bool shouldLandOnBottom = overlapBottom > 0 &&
-        overlapBottom <= GameConstants.groundSnapTolerance + 8;
-    if (shouldLandOnBottom) {
+        overlapBottom <= GameConstants.groundSnapTolerance + 6;
+    final double overlapWidth = _computeHorizontalOverlap(
+      position.x,
+      position.x + size.x,
+      platLeft,
+      platRight,
+    );
+    if (shouldLandOnBottom &&
+        overlapWidth >= GameConstants.minPlatformSupportOverlap) {
       final bool justLanded = !_wasOnGround;
       position.y = platBottom;
+      position.x = _clampXToPlatform(platLeft, platRight);
       velocity.y = 0;
       if (justLanded) {
         onLand?.call(Vector2(position.x + size.x / 2, position.y));
       }
       _markGrounded();
       return true;
+    }
+    if (shouldLandOnBottom) {
+      return false;
     }
     if (minHorizontal + GameConstants.sideCollisionBias <= minVertical) {
       return false;
