@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:meme_game/core/content/meme_quotes.dart';
 import 'package:meme_game/core/platform/screen_orientation_service.dart';
+import 'package:meme_game/core/ui/app_loading_service.dart';
 
 /// 结算页控制器。
 class ResultController extends GetxController {
@@ -65,6 +66,7 @@ class ResultController extends GetxController {
   }
 
   void goHome() {
+    AppLoadingService.to.dismissAll();
     Get.offAllNamed<void>('/');
   }
 }

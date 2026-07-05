@@ -68,7 +68,7 @@ class HomeHeroWidget extends StatelessWidget {
                 ),
               ),
               Text(
-                '离谱梗游 · 五玩法试炼',
+                '离谱梗游 · 六玩法试炼',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,

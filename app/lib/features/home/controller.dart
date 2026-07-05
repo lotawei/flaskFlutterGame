@@ -1,3 +1,4 @@
+import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 import 'package:meme_game/core/observability/app_logger.dart';
 import 'package:meme_game/core/observability/trace_context.dart';
@@ -81,7 +82,9 @@ class HomeController extends GetxController {
   void onInit() {
     super.onInit();
     if (shouldAutoLoad) {
-      loadManifest();
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        loadManifest();
+      });
     }
   }
 
