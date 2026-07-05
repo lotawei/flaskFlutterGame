@@ -237,6 +237,48 @@ class ArchetypeRegistry {
         ),
       ],
     ),
+    LevelArchetypeId.gravityFlip: ArchetypeDefinition(
+      archetypeId: LevelArchetypeId.gravityFlip,
+      name: '重力反转',
+      tagline: '上下颠倒，头朝下走天花板',
+      coreLoop: '进区翻转→倒挂/platform 天花板→找出口',
+      defaultMechanics: <MechanicConfigModel>[
+        MechanicConfigModel(
+          type: MechanicType.gravityFlip,
+          params: <String, Object?>{'default_gravity': 'down'},
+        ),
+      ],
+      defaultWinRules: <WinRuleModel>[
+        WinRuleModel(type: WinRuleType.reachGoal, params: <String, Object?>{}),
+      ],
+      defaultStarRules: <StarRuleModel>[
+        StarRuleModel(
+          star: 1,
+          condition: StarConditionType.clear,
+          params: <String, Object?>{},
+        ),
+        StarRuleModel(
+          star: 2,
+          condition: StarConditionType.coinsRatio,
+          params: <String, Object?>{'ratio': 0.5},
+        ),
+        StarRuleModel(
+          star: 3,
+          condition: StarConditionType.noDamage,
+          params: <String, Object?>{},
+        ),
+      ],
+      defaultMonetizationHooks: <MonetizationHookModel>[
+        MonetizationHookModel(
+          slot: MonetizationSlot.hintReveal,
+          isEnabled: true,
+        ),
+        MonetizationHookModel(
+          slot: MonetizationSlot.reviveOnFail,
+          isEnabled: true,
+        ),
+      ],
+    ),
   };
 
   static ArchetypeDefinition getDefinition(LevelArchetypeId id) {

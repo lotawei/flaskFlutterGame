@@ -78,6 +78,15 @@ class LevelValidator {
         );
       }
     }
+    if (level.archetype == LevelArchetypeId.gravityFlip &&
+        level.gravityZones.isEmpty) {
+      issues.add(
+        LevelValidationIssue(
+          code: 'GRAVITY_NO_ZONES',
+          message: '重力反转关至少需要一个 gravity_zones 分区',
+        ),
+      );
+    }
     return issues;
   }
 

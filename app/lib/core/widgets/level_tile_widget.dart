@@ -156,6 +156,9 @@ class LevelTileStyle {
     if (levelId.contains('lie_flat')) {
       return LevelTileStyle(tag: '躺平', color: const Color(0xFF90CAF9));
     }
+    if (levelId.contains('gravity')) {
+      return LevelTileStyle(tag: '重力', color: const Color(0xFFBA68C8));
+    }
     return LevelTileStyle(tag: '冲关', color: AppColors.coin);
   }
 }

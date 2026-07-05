@@ -4,7 +4,8 @@ enum LevelArchetypeId {
   timedRush('timed_rush'),
   reversalTrap('reversal_trap'),
   greedTax('greed_tax'),
-  lieFlat('lie_flat');
+  lieFlat('lie_flat'),
+  gravityFlip('gravity_flip');
 
   const LevelArchetypeId(this.value);
 
@@ -24,7 +25,8 @@ enum MechanicType {
   coinGreedScale('coin_greed_scale'),
   lieFlatMeter('lie_flat_meter'),
   reversalFakeGoal('reversal_fake_goal'),
-  rhythmStep('rhythm_step');
+  rhythmStep('rhythm_step'),
+  gravityFlip('gravity_flip');
 
   const MechanicType(this.value);
 

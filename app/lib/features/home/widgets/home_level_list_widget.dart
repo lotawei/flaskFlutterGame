@@ -31,7 +31,7 @@ class HomeLevelListWidget extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         const Text(
-          '五种玩法各来一局，找到你的本命梗',
+          '六种玩法各来一局，找到你的本命梗',
           style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
         ),
         const SizedBox(height: 14),

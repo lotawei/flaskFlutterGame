@@ -11,6 +11,7 @@ import 'package:meme_game/core/engine/input/game_input_state.dart';
 import 'package:meme_game/core/engine/sprites/sprite_registry.dart';
 import 'package:meme_game/core/level/level_archetype_id.dart';
 import 'package:meme_game/core/level/level_enemy_model.dart';
+import 'package:meme_game/core/level/level_gravity_zone_model.dart';
 import 'package:meme_game/core/level/level_model.dart';
 import 'package:meme_game/core/level/level_rule_evaluator.dart';
 import 'package:meme_game/core/level/level_rule_model.dart';
@@ -117,6 +118,8 @@ class MemePlatformerGame extends FlameGame
       worldWidth: level.worldWidth,
       worldHeight: level.worldHeight,
       spriteRegistry: spriteRegistry,
+      gravityZones: level.gravityZones,
+      tileSize: level.tileSize.toDouble(),
       onLand: _spawnLandDust,
     );
     _player.position = _resolvePlayerSpawnPosition();
@@ -173,6 +176,14 @@ class MemePlatformerGame extends FlameGame
           ),
           isGround: isGround,
           spriteRegistry: spriteRegistry,
+        ),
+      );
+    }
+    for (final LevelGravityZoneModel zone in level.gravityZones) {
+      world.add(
+        GravityZoneOverlayComponent(
+          zone: zone,
+          tileSize: level.tileSize.toDouble(),
         ),
       );
     }

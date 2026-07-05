@@ -68,6 +68,11 @@ class HomeController extends GetxController {
       title: '躺平计量',
       subtitle: '走停节奏，别急着送人头',
     ),
+    DemoLevelEntry(
+      levelId: 'gravity_flip_demo',
+      title: '颠倒隧道',
+      subtitle: 'ibb 式上下颠倒：上区倒挂走天花板',
+    ),
   ];
 
   AuthController get authController => _authController;

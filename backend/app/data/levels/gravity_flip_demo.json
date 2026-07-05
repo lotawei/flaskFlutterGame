@@ -1,0 +1,54 @@
+{
+  "schema_version": 2,
+  "level_id": "gravity_flip_demo",
+  "name": "颠倒隧道 · 重力反转",
+  "archetype": "gravity_flip",
+  "meme_theme": "ibb_tunnel",
+  "difficulty": "normal",
+  "tile_size": 32,
+  "width_tiles": 62,
+  "height_tiles": 15,
+  "player_spawn": { "x": 2, "y": 11 },
+  "gravity_zones": [
+    { "x": 0, "y": 0, "w": 62, "h": 7, "gravity": "up" },
+    { "x": 0, "y": 7, "w": 62, "h": 8, "gravity": "down" }
+  ],
+  "platforms": [
+    { "x": 0, "y": 13, "w": 14, "h": 2 },
+    { "x": 16, "y": 12, "w": 3, "h": 1 },
+    { "x": 21, "y": 11, "w": 3, "h": 1 },
+    { "x": 26, "y": 10, "w": 4, "h": 1 },
+    { "x": 32, "y": 8, "w": 6, "h": 1 },
+    { "x": 28, "y": 6, "w": 12, "h": 1 },
+    { "x": 40, "y": 3, "w": 4, "h": 1 },
+    { "x": 46, "y": 2, "w": 5, "h": 1 },
+    { "x": 53, "y": 2, "w": 7, "h": 1 },
+    { "x": 0, "y": 14, "w": 62, "h": 1 }
+  ],
+  "coins": [
+    { "x": 8, "y": 12 },
+    { "x": 22, "y": 10 },
+    { "x": 34, "y": 5 },
+    { "x": 44, "y": 2 },
+    { "x": 56, "y": 1 }
+  ],
+  "enemies": [
+    { "x": 28, "y": 9, "patrol_left": 1, "patrol_right": 2 }
+  ],
+  "goal": { "x": 58, "y": 1 },
+  "mechanics": [
+    { "type": "gravity_flip", "params": { "default_gravity": "down" } }
+  ],
+  "win_rules": [{ "type": "reach_goal", "params": {} }],
+  "star_rules": [
+    { "star": 1, "condition": "clear", "params": {} },
+    { "star": 2, "condition": "coins_ratio", "params": { "ratio": 0.6 } },
+    { "star": 3, "condition": "no_damage", "params": {} }
+  ],
+  "monetization_hooks": [
+    { "slot": "hint_reveal", "enabled": true },
+    { "slot": "revive_on_fail", "enabled": true }
+  ],
+  "tip_text": "参考 ibb & obb：紫色上区重力向上，倒挂走天花板；蓝色下区常规重力。从中间跳上去！",
+  "designer_notes": "上半区 y=0-6 重力 up，下半区 y=7-14 重力 down。过渡平台 y=6 供倒挂落地。"
+}

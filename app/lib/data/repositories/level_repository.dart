@@ -29,6 +29,7 @@ class LevelRepository {
     'reversal_trap_demo': 'assets/levels/reversal_trap_demo.json',
     'greed_tax_demo': 'assets/levels/greed_tax_demo.json',
     'lie_flat_demo': 'assets/levels/lie_flat_demo.json',
+    'gravity_flip_demo': 'assets/levels/gravity_flip_demo.json',
   };
 
   Future<LevelModel> loadLevel({

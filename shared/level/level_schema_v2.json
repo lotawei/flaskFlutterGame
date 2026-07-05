@@ -25,7 +25,7 @@
     "name": { "type": "string", "minLength": 1, "maxLength": 64 },
     "archetype": {
       "type": "string",
-      "enum": ["rush_standard", "timed_rush", "reversal_trap", "greed_tax", "lie_flat"]
+      "enum": ["rush_standard", "timed_rush", "reversal_trap", "greed_tax", "lie_flat", "gravity_flip"]
     },
     "meme_theme": {
       "type": "string",
@@ -60,6 +60,10 @@
     "fake_goals": {
       "type": "array",
       "items": { "$ref": "#/definitions/point" }
+    },
+    "gravity_zones": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/gravity_zone" }
     },
     "mechanics": {
       "type": "array",
@@ -126,10 +130,21 @@
         "y": { "type": "integer" },
         "kind": {
           "type": "string",
-          "enum": ["spike", "tax_zone", "face_drain", "rhythm_gate"]
+          "enum": ["spike", "tax_zone", "face_drain", "rhythm_gate", "gravity_flip"]
         },
         "w": { "type": "integer", "default": 1 },
         "h": { "type": "integer", "default": 1 }
+      }
+    },
+    "gravity_zone": {
+      "type": "object",
+      "required": ["x", "y", "w", "h", "gravity"],
+      "properties": {
+        "x": { "type": "integer" },
+        "y": { "type": "integer" },
+        "w": { "type": "integer", "minimum": 1 },
+        "h": { "type": "integer", "minimum": 1 },
+        "gravity": { "type": "string", "enum": ["up", "down"] }
       }
     },
     "mechanic": {
@@ -143,7 +158,8 @@
             "coin_greed_scale",
             "lie_flat_meter",
             "reversal_fake_goal",
-            "rhythm_step"
+            "rhythm_step",
+            "gravity_flip"
           ]
         },
         "params": { "type": "object" }

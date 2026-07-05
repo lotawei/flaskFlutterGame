@@ -62,6 +62,40 @@ void main() {
       expect(level.archetype, LevelArchetypeId.timedRush);
       expect(level.mechanics.first.type, MechanicType.timeLimit);
     });
+
+    test('v2 JSON 可解析 gravity_zones 与 gravity_flip 原型', () {
+      const String rawJson = '''
+      {
+        "schema_version": 2,
+        "level_id": "gravity_test",
+        "name": "重力",
+        "archetype": "gravity_flip",
+        "meme_theme": "ibb",
+        "tile_size": 32,
+        "width_tiles": 40,
+        "height_tiles": 15,
+        "player_spawn": {"x": 1, "y": 11},
+        "gravity_zones": [
+          {"x": 0, "y": 0, "w": 40, "h": 7, "gravity": "up"},
+          {"x": 0, "y": 7, "w": 40, "h": 8, "gravity": "down"}
+        ],
+        "platforms": [{"x": 0, "y": 13, "w": 40, "h": 2}],
+        "coins": [],
+        "enemies": [],
+        "goal": {"x": 38, "y": 1},
+        "mechanics": [
+          {"type": "gravity_flip", "params": {"default_gravity": "down"}}
+        ],
+        "win_rules": [{"type": "reach_goal", "params": {}}],
+        "tip_text": "倒挂"
+      }
+      ''';
+      final LevelModel level = LevelLoader().loadFromJsonString(rawJson);
+      expect(level.archetype, LevelArchetypeId.gravityFlip);
+      expect(level.gravityZones.length, 2);
+      expect(level.gravityZones.first.gravityDirection, -1);
+      expect(level.mechanics.first.type, MechanicType.gravityFlip);
+    });
   });
 
   group('LevelFactory', () {
@@ -117,6 +151,32 @@ void main() {
       final List<LevelValidationIssue> issues = validator.validate(level);
       expect(
         issues.any((LevelValidationIssue item) => item.code == 'REVERSAL_NO_FAKE_GOAL'),
+        isTrue,
+      );
+    });
+
+    test('重力反转关缺 gravity_zones 时报错', () {
+      final LevelValidator validator = LevelValidator();
+      final LevelModel level = LevelModel(
+        levelId: 'bad_gravity',
+        name: '坏关',
+        archetype: LevelArchetypeId.gravityFlip,
+        memeTheme: 'test',
+        tileSize: 32,
+        widthTiles: 20,
+        heightTiles: 15,
+        playerSpawn: LevelPointModel(x: 1, y: 11),
+        platforms: <LevelRectModel>[
+          LevelRectModel(x: 0, y: 13, w: 20, h: 2),
+        ],
+        coins: <LevelPointModel>[],
+        enemies: <LevelEnemyModel>[],
+        goal: LevelPointModel(x: 18, y: 11),
+        tipText: '',
+      );
+      final List<LevelValidationIssue> issues = validator.validate(level);
+      expect(
+        issues.any((LevelValidationIssue item) => item.code == 'GRAVITY_NO_ZONES'),
         isTrue,
       );
     });

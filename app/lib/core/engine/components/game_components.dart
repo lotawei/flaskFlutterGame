@@ -7,6 +7,7 @@ import 'package:meme_game/core/engine/components/effect_components.dart';
 import 'package:meme_game/core/engine/game_constants.dart';
 import 'package:meme_game/core/engine/input/game_input_state.dart';
 import 'package:meme_game/core/engine/sprites/sprite_registry.dart';
+import 'package:meme_game/core/level/level_gravity_zone_model.dart';
 
 /// 玩家动画状态。
 enum PlayerState {
@@ -247,6 +248,43 @@ class GoalComponent extends SpriteComponent with CollisionCallbacks {
   }
 }
 
+/// 重力分区可视化（ibb & obb 风格半透明色带）。
+class GravityZoneOverlayComponent extends PositionComponent {
+  GravityZoneOverlayComponent({
+    required this.zone,
+    required this.tileSize,
+  }) : super(
+          position: Vector2(zone.x * tileSize, zone.y * tileSize),
+          size: Vector2(zone.w * tileSize, zone.h * tileSize),
+          priority: -5,
+        );
+
+  final LevelGravityZoneModel zone;
+  final double tileSize;
+
+  @override
+  void render(Canvas canvas) {
+    final bool isGravityUp = zone.gravityDirection < 0;
+    final Color fill = isGravityUp
+        ? const Color(0x33CE93D8)
+        : const Color(0x3390CAF9);
+    final Color border = isGravityUp
+        ? const Color(0x889C27B0)
+        : const Color(0x8842A5F5);
+    canvas.drawRect(
+      size.toRect(),
+      Paint()..color = fill,
+    );
+    canvas.drawRect(
+      size.toRect(),
+      Paint()
+        ..color = border
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
+    );
+  }
+}
+
 /// 玩家角色。
 class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     with CollisionCallbacks {
@@ -257,7 +295,11 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     required this.worldWidth,
     required this.worldHeight,
     required this.spriteRegistry,
+    this.gravityZones = const <LevelGravityZoneModel>[],
+    this.tileSize = 32,
+    this.defaultGravityDirection = 1,
     this.onLand,
+    this.onGravityDirectionChanged,
   }) : super(size: Vector2(28, 28));
 
   final GameInputState inputState;
@@ -266,7 +308,11 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
   final double worldWidth;
   final double worldHeight;
   final SpriteRegistry spriteRegistry;
+  final List<LevelGravityZoneModel> gravityZones;
+  final double tileSize;
+  final int defaultGravityDirection;
   final void Function(Vector2 worldPosition)? onLand;
+  final void Function(int gravityDirection)? onGravityDirectionChanged;
 
   Vector2 velocity = Vector2.zero();
   bool isOnGround = false;
@@ -275,8 +321,11 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
   bool _wasOnGround = false;
   double _coyoteTimer = 0;
   int _facingDirection = 1;
+  int gravityDirection = 1;
   static const double _coyoteDuration = 0.12;
   static const int _platformResolvePasses = 4;
+
+  int get currentGravityDirection => gravityDirection;
 
   /// 出生或穿模后，强制与平台对齐。
   void alignToPlatforms(Iterable<PlatformComponent> platforms) {
@@ -287,6 +336,8 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
 
   @override
   Future<void> onLoad() async {
+    gravityDirection = defaultGravityDirection;
+    scale.y = gravityDirection.toDouble();
     final SpriteAnimation? idle =
         spriteRegistry.buildAnimation('player', 'idle');
     final SpriteAnimation? run = spriteRegistry.buildAnimation('player', 'run');
@@ -313,9 +364,14 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     _isGrounded = false;
     _applyHorizontalInput(dt);
     _applyJumpInput(canJump);
-    velocity.y += GameConstants.gravity * dt;
-    if (velocity.y > GameConstants.maxFallSpeed) {
-      velocity.y = GameConstants.maxFallSpeed;
+    _updateGravityDirection();
+    velocity.y += gravityDirection * GameConstants.gravity * dt;
+    if (gravityDirection > 0) {
+      if (velocity.y > GameConstants.maxFallSpeed) {
+        velocity.y = GameConstants.maxFallSpeed;
+      }
+    } else if (velocity.y < -GameConstants.maxFallSpeed) {
+      velocity.y = -GameConstants.maxFallSpeed;
     }
     position += velocity * dt;
     _resolvePlatformContacts();
@@ -326,7 +382,9 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     } else {
       _coyoteTimer -= dt;
     }
-    if (position.y > worldHeight + 80) {
+    if (gravityDirection > 0 && position.y > worldHeight + 80) {
+      onFellOff();
+    } else if (gravityDirection < 0 && position.y < -80) {
       onFellOff();
     }
     if (!inputState.jumpHeld) {
@@ -377,7 +435,7 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     if (!canJump || _hasJumpedThisPress) {
       return;
     }
-    velocity.y = -GameConstants.playerJumpSpeed;
+    velocity.y = -gravityDirection * GameConstants.playerJumpSpeed;
     _isGrounded = false;
     isOnGround = false;
     _hasJumpedThisPress = true;
@@ -394,6 +452,7 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
       _facingDirection = 1;
     }
     scale.x = _facingDirection.toDouble();
+    scale.y = gravityDirection.toDouble();
     final bool isAirborne = !wasGrounded && !_isGrounded && velocity.y.abs() > 12;
     if (isAirborne) {
       current = PlayerState.jump;
@@ -421,6 +480,30 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
         break;
       }
     }
+  }
+
+  void _updateGravityDirection() {
+    if (gravityZones.isEmpty) {
+      return;
+    }
+    final double centerX = position.x + size.x / 2;
+    final double centerY = position.y + size.y / 2;
+    int nextDirection = defaultGravityDirection;
+    for (final LevelGravityZoneModel zone in gravityZones) {
+      if (zone.containsWorldPoint(
+        worldX: centerX,
+        worldY: centerY,
+        tileSize: tileSize,
+      )) {
+        nextDirection = zone.gravityDirection;
+      }
+    }
+    if (nextDirection == gravityDirection) {
+      return;
+    }
+    gravityDirection = nextDirection;
+    scale.y = gravityDirection.toDouble();
+    onGravityDirectionChanged?.call(gravityDirection);
   }
 
   void _clampHorizontalBounds() {
@@ -500,18 +583,34 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     final double overlapBottom = platBottom - playerTop;
     final double minHorizontal = overlapLeft < overlapRight ? overlapLeft : overlapRight;
     final double minVertical = overlapTop < overlapBottom ? overlapTop : overlapBottom;
-    final bool canLandOnTop = velocity.y >= 0 &&
-        playerTop <= platTop + GameConstants.groundSnapTolerance &&
-        overlapTop <= GameConstants.groundSnapTolerance + 8;
-    if (canLandOnTop && minVertical <= minHorizontal + 2) {
-      final bool justLanded = !_wasOnGround;
-      position.y = platTop - size.y;
-      velocity.y = 0;
-      if (justLanded) {
-        onLand?.call(Vector2(position.x + size.x / 2, position.y + size.y));
+    if (gravityDirection > 0) {
+      final bool canLandOnTop = velocity.y >= 0 &&
+          playerTop <= platTop + GameConstants.groundSnapTolerance &&
+          overlapTop <= GameConstants.groundSnapTolerance + 8;
+      if (canLandOnTop && minVertical <= minHorizontal + 2) {
+        final bool justLanded = !_wasOnGround;
+        position.y = platTop - size.y;
+        velocity.y = 0;
+        if (justLanded) {
+          onLand?.call(Vector2(position.x + size.x / 2, position.y + size.y));
+        }
+        _markGrounded();
+        return true;
       }
-      _markGrounded();
-      return true;
+    } else {
+      final bool canLandOnBottom = velocity.y <= 0 &&
+          playerBottom >= platBottom - GameConstants.groundSnapTolerance &&
+          overlapBottom <= GameConstants.groundSnapTolerance + 8;
+      if (canLandOnBottom && minVertical <= minHorizontal + 2) {
+        final bool justLanded = !_wasOnGround;
+        position.y = platBottom;
+        velocity.y = 0;
+        if (justLanded) {
+          onLand?.call(Vector2(position.x + size.x / 2, position.y));
+        }
+        _markGrounded();
+        return true;
+      }
     }
     if (minHorizontal <= minVertical) {
       if (overlapLeft < overlapRight) {
@@ -522,12 +621,23 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
       velocity.x = 0;
       return true;
     }
-    if (velocity.y < 0) {
-      position.y = platBottom;
+    if (gravityDirection > 0) {
+      if (velocity.y < 0) {
+        position.y = platBottom;
+        velocity.y = 0;
+        return true;
+      }
+      position.y = platTop - size.y;
+      velocity.y = 0;
+      _markGrounded();
+      return true;
+    }
+    if (velocity.y > 0) {
+      position.y = platTop - size.y;
       velocity.y = 0;
       return true;
     }
-    position.y = platTop - size.y;
+    position.y = platBottom;
     velocity.y = 0;
     _markGrounded();
     return true;
@@ -537,11 +647,13 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     if (!enemy.isAlive) {
       return;
     }
-    final bool isStomp =
-        velocity.y > 0 && (position.y + size.y - enemy.position.y) < 14;
+    final bool isStomp = gravityDirection > 0
+        ? velocity.y > 0 && (position.y + size.y - enemy.position.y) < 14
+        : velocity.y < 0 &&
+            (enemy.position.y + enemy.size.y - position.y) < 14;
     if (isStomp) {
       enemy.defeat();
-      velocity.y = -GameConstants.playerJumpSpeed * 0.65;
+      velocity.y = -gravityDirection * GameConstants.playerJumpSpeed * 0.65;
       _isGrounded = false;
       isOnGround = false;
       return;

@@ -1,5 +1,6 @@
 import 'package:meme_game/core/level/level_archetype_id.dart';
 import 'package:meme_game/core/level/level_enemy_model.dart';
+import 'package:meme_game/core/level/level_gravity_zone_model.dart';
 import 'package:meme_game/core/level/level_rule_model.dart';
 
 /// 关卡数据模型（v1/v2 兼容）。
@@ -20,6 +21,7 @@ class LevelModel {
     required this.enemies,
     required this.goal,
     this.fakeGoals = const <LevelPointModel>[],
+    this.gravityZones = const <LevelGravityZoneModel>[],
     this.mechanics = const <MechanicConfigModel>[],
     this.winRules = const <WinRuleModel>[],
     this.starRules = const <StarRuleModel>[],
@@ -43,6 +45,7 @@ class LevelModel {
   final List<LevelEnemyModel> enemies;
   final LevelPointModel goal;
   final List<LevelPointModel> fakeGoals;
+  final List<LevelGravityZoneModel> gravityZones;
   final List<MechanicConfigModel> mechanics;
   final List<WinRuleModel> winRules;
   final List<StarRuleModel> starRules;
@@ -84,6 +87,7 @@ class LevelModel {
         json['goal'] as Map<String, dynamic>? ?? <String, dynamic>{},
       ),
       fakeGoals: _parsePoints(json['fake_goals']),
+      gravityZones: _parseGravityZones(json['gravity_zones']),
       mechanics: _parseMechanics(json['mechanics']),
       winRules: _parseWinRules(json['win_rules']),
       starRules: _parseStarRules(json['star_rules']),
@@ -140,6 +144,18 @@ class LevelModel {
               (LevelPointModel point) => <String, int>{
                 'x': point.x,
                 'y': point.y,
+              },
+            )
+            .toList(),
+      if (gravityZones.isNotEmpty)
+        'gravity_zones': gravityZones
+            .map(
+              (LevelGravityZoneModel zone) => <String, Object>{
+                'x': zone.x,
+                'y': zone.y,
+                'w': zone.w,
+                'h': zone.h,
+                'gravity': zone.gravityDirection < 0 ? 'up' : 'down',
               },
             )
             .toList(),
@@ -211,6 +227,16 @@ class LevelModel {
     return raw
         .whereType<Map<String, dynamic>>()
         .map(LevelEnemyModel.fromJson)
+        .toList();
+  }
+
+  static List<LevelGravityZoneModel> _parseGravityZones(Object? raw) {
+    if (raw is! List<dynamic>) {
+      return <LevelGravityZoneModel>[];
+    }
+    return raw
+        .whereType<Map<String, dynamic>>()
+        .map(LevelGravityZoneModel.fromJson)
         .toList();
   }
 
