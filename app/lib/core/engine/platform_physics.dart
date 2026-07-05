@@ -312,6 +312,12 @@ class PlatformPhysicsSolver {
     if (playerBottom <= platform.top + GameConstants.groundSnapTolerance) {
       return false;
     }
+    if (gravityDirection > 0 && playerTop < platform.top) {
+      return false;
+    }
+    if (gravityDirection < 0 && playerBottom > platform.bottom) {
+      return false;
+    }
     if (playerBottom >= platform.bottom - _sideWallMargin &&
         playerTop < platform.bottom) {
       if (bodyLeft < platform.left + _sideWallMargin) {

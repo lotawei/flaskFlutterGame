@@ -405,5 +405,33 @@ void main() {
       );
       expect(result.y + 28, lessThanOrEqualTo(400.5));
     });
+
+    test('陷进宽地面按左键不能被推到屏幕外', () {
+      final PlatformPhysicsSolver solver = PlatformPhysicsSolver(
+        platforms: <PlatformSurface>[
+          const PlatformSurface(
+            left: 0,
+            top: 400,
+            right: 800,
+            bottom: 464,
+            isOneWay: false,
+          ),
+        ],
+        worldWidth: 800,
+        worldHeight: 480,
+        gravityDirection: 1,
+      );
+      final PlatformPhysicsResult result = solver.simulate(
+        x: 100,
+        y: 410,
+        velocityX: -200,
+        velocityY: 0,
+        dt: 0.05,
+        wasGrounded: false,
+      );
+      expect(result.x, greaterThanOrEqualTo(0));
+      expect(result.x, lessThan(200));
+      expect(result.y + 28, lessThanOrEqualTo(400.5));
+    });
   });
 }
