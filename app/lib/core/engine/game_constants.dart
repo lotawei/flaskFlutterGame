@@ -11,6 +11,7 @@ class GameConstants {
   static const double groundSnapTolerance = 16;
   static const double groundFeetTolerance = 6;
   static const double sideCollisionBias = 4;
+  static const double minPlatformSupportOverlap = 24;
   static const double cameraLerp = 8;
   static const double enemyPatrolSpeed = 60;
 }

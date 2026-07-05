@@ -103,12 +103,8 @@ class MemePlatformerGame extends FlameGame
     await spriteRegistry.preloadAllAssets();
     _loadMechanics();
     camera.viewfinder.anchor = Anchor.center;
-    world.add(
-      SkyBackgroundComponent(
-        worldWidth: level.worldWidth,
-        worldHeight: level.worldHeight,
-        spriteRegistry: spriteRegistry,
-      ),
+    camera.backdrop.add(
+      ViewportSkyBackdrop(spriteRegistry: spriteRegistry),
     );
     _buildLevel();
     _player = PlayerComponent(

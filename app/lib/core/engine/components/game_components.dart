@@ -22,7 +22,49 @@ enum _CollisionAxis {
   vertical,
 }
 
-/// 天空背景层（视差平铺）。
+/// 天空背景（挂载在 camera.backdrop，始终铺满屏幕，不受世界左边界影响）。
+class ViewportSkyBackdrop extends Component with HasGameReference<FlameGame> {
+  ViewportSkyBackdrop({required this.spriteRegistry});
+
+  final SpriteRegistry spriteRegistry;
+  Sprite? _skySprite;
+  static const double _parallaxFactor = 0.28;
+
+  @override
+  Future<void> onLoad() async {
+    _skySprite = spriteRegistry.buildSprite('bg_sky');
+    await super.onLoad();
+  }
+
+  @override
+  void render(Canvas canvas) {
+    final Vector2 viewportSize = game.camera.viewport.virtualSize;
+    final Paint skyPaint = Paint()..color = const Color(0xFFB3E5FC);
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, viewportSize.x, viewportSize.y),
+      skyPaint,
+    );
+    if (_skySprite == null) {
+      return;
+    }
+    const double tileWidth = 320;
+    const double tileHeight = 180;
+    final double parallaxOffset =
+        game.camera.viewfinder.position.x * _parallaxFactor;
+    final double startX = -(parallaxOffset % tileWidth);
+    for (double x = startX - tileWidth; x < viewportSize.x + tileWidth; x += tileWidth) {
+      for (double y = 0; y < viewportSize.y; y += tileHeight) {
+        _skySprite!.render(
+          canvas,
+          position: Vector2(x, y),
+          size: Vector2(tileWidth, tileHeight),
+        );
+      }
+    }
+  }
+}
+
+/// 天空背景层（世界坐标，保留供非 camera 场景复用）。
 class SkyBackgroundComponent extends PositionComponent with HasGameReference<FlameGame> {
   SkyBackgroundComponent({
     required this.worldWidth,
@@ -291,6 +333,14 @@ class GravityZoneOverlayComponent extends PositionComponent {
   }
 }
 
+/// 平台水平支撑区间。
+class _PlatformSupport {
+  const _PlatformSupport({required this.left, required this.right});
+
+  final double left;
+  final double right;
+}
+
 /// 玩家角色。
 class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     with CollisionCallbacks {
@@ -385,6 +435,7 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     _clampHorizontalBounds();
     position.y += velocity.y * dt;
     _resolvePlatformContacts(_CollisionAxis.vertical);
+    _enforcePlatformEdgeSupport();
     _updateAnimationState(wasGrounded);
     if (wasGrounded || _isGrounded) {
       _coyoteTimer = _coyoteDuration;
@@ -530,6 +581,133 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
       }
     }
   }
+
+  void _enforcePlatformEdgeSupport() {
+    if (!_isGrounded) {
+      return;
+    }
+    if (gravityDirection > 0) {
+      final _PlatformSupport? support = _findFeetSupport();
+      if (support == null) {
+        _isGrounded = false;
+        isOnGround = false;
+        return;
+      }
+      final double maxOverhang = size.x - GameConstants.minPlatformSupportOverlap;
+      final double minX = support.left - maxOverhang;
+      final double maxX = support.right - size.x + maxOverhang;
+      if (position.x < minX) {
+        position.x = minX;
+        if (velocity.x < 0) {
+          velocity.x = 0;
+        }
+      } else if (position.x > maxX) {
+        position.x = maxX;
+        if (velocity.x > 0) {
+          velocity.x = 0;
+        }
+      }
+      return;
+    }
+    final _PlatformSupport? ceilingSupport = _findHeadSupport();
+    if (ceilingSupport == null) {
+      _isGrounded = false;
+      isOnGround = false;
+      return;
+    }
+    final double maxOverhang = size.x - GameConstants.minPlatformSupportOverlap;
+    final double minX = ceilingSupport.left - maxOverhang;
+    final double maxX = ceilingSupport.right - size.x + maxOverhang;
+    if (position.x < minX) {
+      position.x = minX;
+      if (velocity.x < 0) {
+        velocity.x = 0;
+      }
+    } else if (position.x > maxX) {
+      position.x = maxX;
+      if (velocity.x > 0) {
+        velocity.x = 0;
+      }
+    }
+  }
+
+  _PlatformSupport? _findFeetSupport() {
+    final double feetY = position.y + size.y;
+    final double playerLeft = position.x;
+    final double playerRight = position.x + size.x;
+    _PlatformSupport? bestSupport;
+    double bestOverlap = 0;
+    for (final PlatformComponent platform in _platforms) {
+      final double platTop = platform.position.y;
+      if ((feetY - platTop).abs() > GameConstants.groundSnapTolerance + 2) {
+        continue;
+      }
+      final double platLeft = platform.position.x;
+      final double platRight = platform.position.x + platform.size.x;
+      final double overlapWidth = _computeHorizontalOverlap(
+        playerLeft,
+        playerRight,
+        platLeft,
+        platRight,
+      );
+      if (overlapWidth < GameConstants.minPlatformSupportOverlap) {
+        continue;
+      }
+      if (overlapWidth > bestOverlap) {
+        bestOverlap = overlapWidth;
+        bestSupport = _PlatformSupport(left: platLeft, right: platRight);
+      }
+    }
+    return bestSupport;
+  }
+
+  _PlatformSupport? _findHeadSupport() {
+    final double headY = position.y;
+    final double playerLeft = position.x;
+    final double playerRight = position.x + size.x;
+    _PlatformSupport? bestSupport;
+    double bestOverlap = 0;
+    for (final PlatformComponent platform in _platforms) {
+      final double platBottom = platform.position.y + platform.size.y;
+      if ((platBottom - headY).abs() > GameConstants.groundSnapTolerance + 2) {
+        continue;
+      }
+      final double platLeft = platform.position.x;
+      final double platRight = platform.position.x + platform.size.x;
+      final double overlapWidth = _computeHorizontalOverlap(
+        playerLeft,
+        playerRight,
+        platLeft,
+        platRight,
+      );
+      if (overlapWidth < GameConstants.minPlatformSupportOverlap) {
+        continue;
+      }
+      if (overlapWidth > bestOverlap) {
+        bestOverlap = overlapWidth;
+        bestSupport = _PlatformSupport(left: platLeft, right: platRight);
+      }
+    }
+    return bestSupport;
+  }
+
+  double _computeHorizontalOverlap(
+    double aLeft,
+    double aRight,
+    double bLeft,
+    double bRight,
+  ) {
+    final double left = aLeft > bLeft ? aLeft : bLeft;
+    final double right = aRight < bRight ? aRight : bRight;
+    if (right <= left) {
+      return 0;
+    }
+    return right - left;
+  }
+
+  Iterable<PlatformComponent> get _platforms =>
+      parent?.children.whereType<PlatformComponent>() ??
+      const <PlatformComponent>[];
 
   void _markGrounded() {
     _isGrounded = true;
