@@ -117,10 +117,7 @@ class MemePlatformerGame extends FlameGame
       spriteRegistry: spriteRegistry,
       onLand: _spawnLandDust,
     );
-    _player.position = Vector2(
-      level.playerSpawn.x * level.tileSize.toDouble() + 2,
-      level.playerSpawn.y * level.tileSize.toDouble(),
-    );
+    _player.position = _resolvePlayerSpawnPosition();
     add(_player);
     add(KeyboardListenerComponent());
     logger.info(
@@ -227,6 +224,34 @@ class MemePlatformerGame extends FlameGame
   void _handleCoinCollected() {
     _collectedCoins += 1;
     onCoinCollected(_collectedCoins);
+  }
+
+  Vector2 _resolvePlayerSpawnPosition() {
+    const double playerWidth = 28;
+    const double playerHeight = 28;
+    final double tile = level.tileSize.toDouble();
+    final double spawnX = level.playerSpawn.x * tile + 2;
+    final double spawnTop = level.playerSpawn.y * tile;
+    final double spawnCenterX = spawnX + playerWidth / 2;
+    double? nearestPlatformTop;
+    for (final LevelRectModel rect in level.platforms) {
+      final double left = rect.x * tile;
+      final double right = (rect.x + rect.w) * tile;
+      final double top = rect.y * tile;
+      if (spawnCenterX < left || spawnCenterX > right) {
+        continue;
+      }
+      if (top < spawnTop + playerHeight - 16) {
+        continue;
+      }
+      if (nearestPlatformTop == null || top < nearestPlatformTop) {
+        nearestPlatformTop = top;
+      }
+    }
+    final double spawnY = nearestPlatformTop != null
+        ? nearestPlatformTop - playerHeight
+        : spawnTop;
+    return Vector2(spawnX, spawnY);
   }
 
   void _finishGame(GameEndReason reason) {

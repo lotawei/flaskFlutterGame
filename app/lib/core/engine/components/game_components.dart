@@ -266,6 +266,8 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
   bool isOnGround = false;
   bool _hasJumpedThisPress = false;
   bool _wasOnGround = false;
+  double _coyoteTimer = 0;
+  static const double _coyoteDuration = 0.12;
 
   @override
   Future<void> onLoad() async {
@@ -298,6 +300,11 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
       velocity.y = GameConstants.maxFallSpeed;
     }
     position += velocity * dt;
+    if (isOnGround) {
+      _coyoteTimer = _coyoteDuration;
+    } else {
+      _coyoteTimer -= dt;
+    }
     if (position.y > worldHeight + 80) {
       onFellOff();
     }
@@ -329,6 +336,14 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
       velocity.y = -GameConstants.playerJumpSpeed;
       isOnGround = false;
       _hasJumpedThisPress = true;
+      _coyoteTimer = 0;
+      return;
+    }
+    if (_coyoteTimer > 0 && !_hasJumpedThisPress) {
+      velocity.y = -GameConstants.playerJumpSpeed;
+      isOnGround = false;
+      _hasJumpedThisPress = true;
+      _coyoteTimer = 0;
     }
   }
 
@@ -360,6 +375,22 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     PositionComponent other,
   ) {
     super.onCollisionStart(intersectionPoints, other);
+    _handleCollision(other, intersectionPoints);
+  }
+
+  @override
+  void onCollision(
+    Set<Vector2> intersectionPoints,
+    PositionComponent other,
+  ) {
+    super.onCollision(intersectionPoints, other);
+    _handleCollision(other, intersectionPoints);
+  }
+
+  void _handleCollision(
+    PositionComponent other,
+    Set<Vector2> intersectionPoints,
+  ) {
     if (other is PlatformComponent) {
       _resolvePlatformCollision(other, intersectionPoints);
     } else if (other is CoinComponent) {
@@ -384,8 +415,8 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     final double platformTop = platform.position.y;
     final bool isFalling = velocity.y >= 0;
     final bool landingOnTop = isFalling &&
-        playerBottom - platformTop < 18 &&
-        position.y < platform.position.y;
+        playerBottom - platformTop <= 24 &&
+        position.y + size.y / 2 <= platformTop + 8;
     if (landingOnTop) {
       position.y = platformTop - size.y;
       velocity.y = 0;

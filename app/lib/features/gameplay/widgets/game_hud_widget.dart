@@ -11,6 +11,7 @@ class GameHudWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isMobile = GetPlatform.isMobile;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -88,23 +89,26 @@ class GameHudWidget extends StatelessWidget {
                       ),
                     ),
             ),
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.75),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.outline.withValues(alpha: 0.5)),
-              ),
-              child: const Text(
-                '键盘: A/D 或 ←/→ 移动 · W/↑/空格 跳跃',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+            if (!isMobile) ...<Widget>[
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.75),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.outline.withValues(alpha: 0.5)),
+                ),
+                child: const Text(
+                  '键盘: A/D 或 ←/→ 移动 · W/↑/空格 跳跃',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-            ),
+            ] else
+              const Spacer(),
           ],
         ),
       ),
