@@ -114,6 +114,7 @@ class MemePlatformerGame extends FlameGame
       inputState: inputState,
       onFellOff: () => _finishGame(GameEndReason.fellOff),
       onHitByEnemy: () => _finishGame(GameEndReason.hitByEnemy),
+      worldWidth: level.worldWidth,
       worldHeight: level.worldHeight,
       spriteRegistry: spriteRegistry,
       onLand: _spawnLandDust,
