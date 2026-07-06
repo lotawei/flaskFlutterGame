@@ -116,9 +116,12 @@ class MemePlatformerGame extends FlameGame
       spriteRegistry: spriteRegistry,
       gravityZones: level.gravityZones,
       tileSize: level.tileSize.toDouble(),
+      defaultGravityDirection: _readDefaultGravityDirection(),
       onLand: _spawnLandDust,
+      onGravityDirectionChanged: _handleGravityDirectionChanged,
     );
     _player.position = _resolvePlayerSpawnPosition();
+    _player.initializeGravityFromPosition();
     world.add(_player);
     _player.alignToPlatforms(
       world.children.whereType<PlatformComponent>(),
@@ -183,6 +186,15 @@ class MemePlatformerGame extends FlameGame
         ),
       );
     }
+    if (level.gravityZones.length >= 2) {
+      final double boundaryY = level.gravityZones.first.h * level.tileSize.toDouble();
+      world.add(
+        GravityBoundaryLineComponent(
+          boundaryY: boundaryY,
+          worldWidth: level.worldWidth,
+        ),
+      );
+    }
     for (final LevelPointModel coin in level.coins) {
       _totalCoins += 1;
       world.add(
@@ -241,6 +253,34 @@ class MemePlatformerGame extends FlameGame
 
   void _spawnLandDust(Vector2 worldPosition) {
     world.add(LandDustEffect(position: worldPosition - Vector2(16, 10)));
+  }
+
+  int _readDefaultGravityDirection() {
+    for (final MechanicConfigModel mechanic in level.mechanics) {
+      if (mechanic.type == MechanicType.gravityFlip) {
+        final String raw =
+            mechanic.params['default_gravity'] as String? ?? 'down';
+        return raw == 'up' ? -1 : 1;
+      }
+    }
+    return 1;
+  }
+
+  void _handleGravityDirectionChanged(int gravityDirection) {
+    world.add(
+      LandDustEffect(
+        position: _player.position + Vector2(_player.size.x / 2, _player.size.y / 2),
+      ),
+    );
+    logger.info(
+      module: 'core.engine',
+      event: 'game.gravity.flipped',
+      message: '重力方向切换',
+      extra: <String, Object?>{
+        'gravity_direction': gravityDirection,
+        'velocity_y': _player.velocity.y,
+      },
+    );
   }
 
   void _handleCoinCollected() {

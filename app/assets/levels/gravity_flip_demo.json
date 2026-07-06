@@ -8,36 +8,37 @@
   "tile_size": 32,
   "width_tiles": 62,
   "height_tiles": 15,
-  "player_spawn": { "x": 2, "y": 11 },
+  "player_spawn": { "x": 2, "y": 12 },
   "gravity_zones": [
-    { "x": 0, "y": 0, "w": 62, "h": 7, "gravity": "up" },
-    { "x": 0, "y": 7, "w": 62, "h": 8, "gravity": "down" }
+    { "x": 0, "y": 0, "w": 62, "h": 7, "gravity": "down" },
+    { "x": 0, "y": 7, "w": 62, "h": 8, "gravity": "up" }
   ],
   "platforms": [
-    { "x": 0, "y": 13, "w": 14, "h": 2 },
-    { "x": 16, "y": 12, "w": 3, "h": 1 },
-    { "x": 21, "y": 11, "w": 3, "h": 1 },
-    { "x": 26, "y": 10, "w": 4, "h": 1 },
-    { "x": 32, "y": 8, "w": 6, "h": 1 },
-    { "x": 28, "y": 6, "w": 12, "h": 1 },
-    { "x": 40, "y": 3, "w": 4, "h": 1 },
-    { "x": 46, "y": 2, "w": 5, "h": 1 },
-    { "x": 53, "y": 2, "w": 7, "h": 1 },
-    { "x": 0, "y": 14, "w": 62, "h": 1 }
+    { "x": 50, "y": 1, "w": 10, "h": 1 },
+    { "x": 42, "y": 3, "w": 5, "h": 1 },
+    { "x": 34, "y": 4, "w": 5, "h": 1 },
+    { "x": 26, "y": 5, "w": 6, "h": 1 },
+    { "x": 20, "y": 6, "w": 10, "h": 1 },
+    { "x": 0, "y": 12, "w": 16, "h": 1 },
+    { "x": 18, "y": 11, "w": 4, "h": 1 },
+    { "x": 24, "y": 10, "w": 4, "h": 1 },
+    { "x": 30, "y": 9, "w": 5, "h": 1 },
+    { "x": 36, "y": 8, "w": 6, "h": 1 },
+    { "x": 22, "y": 7, "w": 24, "h": 1 }
   ],
   "coins": [
-    { "x": 8, "y": 12 },
-    { "x": 22, "y": 10 },
-    { "x": 34, "y": 5 },
-    { "x": 44, "y": 2 },
-    { "x": 56, "y": 1 }
+    { "x": 8, "y": 11 },
+    { "x": 26, "y": 9 },
+    { "x": 36, "y": 7 },
+    { "x": 38, "y": 4 },
+    { "x": 54, "y": 0 }
   ],
   "enemies": [
-    { "x": 28, "y": 9, "patrol_left": 1, "patrol_right": 2 }
+    { "x": 32, "y": 8, "patrol_left": 1, "patrol_right": 2 }
   ],
-  "goal": { "x": 58, "y": 1 },
+  "goal": { "x": 54, "y": 0 },
   "mechanics": [
-    { "type": "gravity_flip", "params": { "default_gravity": "down" } }
+    { "type": "gravity_flip", "params": { "default_gravity": "up" } }
   ],
   "win_rules": [{ "type": "reach_goal", "params": {} }],
   "star_rules": [
@@ -49,6 +50,6 @@
     { "slot": "hint_reveal", "enabled": true },
     { "slot": "revive_on_fail", "enabled": true }
   ],
-  "tip_text": "参考 ibb & obb：紫色上区重力向上，倒挂走天花板；蓝色下区常规重力。从中间跳上去！",
-  "designer_notes": "上半区 y=0-6 重力 up，下半区 y=7-14 重力 down。过渡平台 y=6 供倒挂落地。"
+  "tip_text": "ibb & obb 风格：上区重力向下走地板，下区重力向上走天花板。从中间分界线跃入上区时动量会翻转！",
+  "designer_notes": "上区 y=0-6 重力 down；下区 y=7-14 重力 up。y=7 平台为分界线过渡，跳下/跳上穿越时保留动量。"
 }

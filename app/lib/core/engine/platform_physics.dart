@@ -137,22 +137,15 @@ class PlatformPhysicsSolver {
     double px = _clampWorldX(x);
     double py = y;
     for (int pass = 0; pass < _maxDepenetrationPasses * 2; pass++) {
-      if (!_depenetrate(
+      if (!_ejectFromSolidAlongGravity(
         px: () => px,
         py: () => py,
         setPx: (double v) => px = v,
         setPy: (double v) => py = v,
-        wasRising: false,
       )) {
         break;
       }
     }
-    _forceExitSolidPlatforms(
-      px: () => px,
-      py: () => py,
-      setPx: (double v) => px = v,
-      setPy: (double v) => py = v,
-    );
     px = _clampWorldX(px);
     final bool isGrounded = _probeGrounded(px, py);
     if (isGrounded) {
@@ -167,15 +160,105 @@ class PlatformPhysicsSolver {
           py = support.bottom;
         }
       }
+    } else if (gravityDirection < 0) {
+      final PlatformSurface? ceiling = _findNearestCeilingBelow(px, py);
+      if (ceiling != null) {
+        px = _clampXOnPlatform(px, ceiling);
+        py = ceiling.bottom;
+      }
+    } else {
+      final PlatformSurface? floor = _findNearestFloorAbove(px, py);
+      if (floor != null) {
+        px = _clampXOnPlatform(px, floor);
+        py = floor.top - playerHeight;
+      }
     }
+    final bool snappedGrounded = _probeGrounded(px, py);
     return PlatformPhysicsResult(
       x: px,
       y: py,
       velocityX: 0,
       velocityY: 0,
-      isGrounded: isGrounded,
+      isGrounded: snappedGrounded,
       justLanded: false,
     );
+  }
+
+  bool _ejectFromSolidAlongGravity({
+    required double Function() px,
+    required double Function() py,
+    required void Function(double) setPx,
+    required void Function(double) setPy,
+  }) {
+    for (final PlatformSurface platform in platforms) {
+      if (platform.isOneWay) {
+        continue;
+      }
+      final _OverlapInfo? overlap = _computeOverlap(px(), py(), platform);
+      if (overlap == null) {
+        continue;
+      }
+      final double playerCenterX = px() + playerWidth / 2;
+      final bool centerInsideHorizontally =
+          playerCenterX > platform.left && playerCenterX < platform.right;
+      if (!centerInsideHorizontally &&
+          overlap.penetrationX < overlap.penetrationY) {
+        if (overlap.penetrationXLeft < overlap.penetrationXRight) {
+          setPx(platform.left - playerWidth);
+        } else {
+          setPx(platform.right);
+        }
+        return true;
+      }
+      if (gravityDirection > 0) {
+        setPy(platform.top - playerHeight);
+      } else {
+        setPy(platform.bottom);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  PlatformSurface? _findNearestCeilingBelow(double px, double py) {
+    PlatformSurface? best;
+    double bestDistance = double.infinity;
+    final double feetProbeX = px + playerWidth / 2;
+    for (final PlatformSurface platform in platforms) {
+      if (feetProbeX < platform.left || feetProbeX > platform.right) {
+        continue;
+      }
+      if (platform.bottom < py) {
+        continue;
+      }
+      final double distance = platform.bottom - py;
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = platform;
+      }
+    }
+    return best;
+  }
+
+  PlatformSurface? _findNearestFloorAbove(double px, double py) {
+    PlatformSurface? best;
+    double bestDistance = double.infinity;
+    final double feetProbeX = px + playerWidth / 2;
+    for (final PlatformSurface platform in platforms) {
+      if (feetProbeX < platform.left || feetProbeX > platform.right) {
+        continue;
+      }
+      final double surfaceY = platform.top - playerHeight;
+      if (surfaceY < py) {
+        continue;
+      }
+      final double distance = surfaceY - py;
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = platform;
+      }
+    }
+    return best;
   }
 
   void _sweepAxis({

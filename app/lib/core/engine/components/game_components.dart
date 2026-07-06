@@ -291,6 +291,41 @@ class GoalComponent extends SpriteComponent with CollisionCallbacks {
   }
 }
 
+/// 重力分界线可视化（ibb & obb 风格水平地平线 + 光圈带）。
+class GravityBoundaryLineComponent extends PositionComponent {
+  GravityBoundaryLineComponent({
+    required this.boundaryY,
+    required this.worldWidth,
+  }) : super(
+          position: Vector2(0, boundaryY),
+          size: Vector2(worldWidth, GameConstants.gravityTransitionBand),
+          priority: -4,
+        );
+
+  final double boundaryY;
+  final double worldWidth;
+
+  @override
+  void render(Canvas canvas) {
+    final double bandTop = GameConstants.gravityTransitionBand / 2 - 2;
+    canvas.drawRect(
+      Rect.fromLTWH(0, bandTop, worldWidth, 4),
+      Paint()..color = const Color(0xAAFFFFFF),
+    );
+    const double portalRadius = 10;
+    for (double x = portalRadius; x < worldWidth; x += 64) {
+      canvas.drawCircle(
+        Offset(x, bandTop + 2),
+        portalRadius,
+        Paint()
+          ..color = const Color(0x44FFFFFF)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2,
+      );
+    }
+  }
+}
+
 /// 重力分区可视化（ibb & obb 风格半透明色带）。
 class GravityZoneOverlayComponent extends PositionComponent {
   GravityZoneOverlayComponent({
@@ -309,10 +344,10 @@ class GravityZoneOverlayComponent extends PositionComponent {
   void render(Canvas canvas) {
     final bool isGravityUp = zone.gravityDirection < 0;
     final Color fill = isGravityUp
-        ? const Color(0x33CE93D8)
+        ? const Color(0x33F8BBD0)
         : const Color(0x3390CAF9);
     final Color border = isGravityUp
-        ? const Color(0x889C27B0)
+        ? const Color(0x88E91E63)
         : const Color(0x8842A5F5);
     canvas.drawRect(
       size.toRect(),
@@ -368,6 +403,29 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
   static const double _coyoteDuration = 0.12;
 
   int get currentGravityDirection => gravityDirection;
+
+  /// 根据当前位置同步重力方向（出生对齐前调用）。
+  void initializeGravityFromPosition() {
+    final int? zoneGravity = _queryZoneGravityDirection();
+    gravityDirection = zoneGravity ?? defaultGravityDirection;
+    scale.y = gravityDirection.toDouble();
+  }
+
+  int? _queryZoneGravityDirection() {
+    final double centerX = position.x + size.x / 2;
+    final double centerY = position.y + size.y / 2;
+    int? matchedDirection;
+    for (final LevelGravityZoneModel zone in gravityZones) {
+      if (zone.containsWorldPoint(
+        worldX: centerX,
+        worldY: centerY,
+        tileSize: tileSize,
+      )) {
+        matchedDirection = zone.gravityDirection;
+      }
+    }
+    return matchedDirection;
+  }
 
   List<PlatformSurface> _buildPlatformSurfaces() {
     return _platforms
@@ -559,21 +617,14 @@ class PlayerComponent extends SpriteAnimationGroupComponent<PlayerState>
     if (gravityZones.isEmpty) {
       return;
     }
-    final double centerX = position.x + size.x / 2;
-    final double centerY = position.y + size.y / 2;
-    int nextDirection = defaultGravityDirection;
-    for (final LevelGravityZoneModel zone in gravityZones) {
-      if (zone.containsWorldPoint(
-        worldX: centerX,
-        worldY: centerY,
-        tileSize: tileSize,
-      )) {
-        nextDirection = zone.gravityDirection;
-      }
-    }
-    if (nextDirection == gravityDirection) {
+    final int? nextDirection = _queryZoneGravityDirection();
+    if (nextDirection == null || nextDirection == gravityDirection) {
       return;
     }
+    velocity.y = -velocity.y * GameConstants.gravityMomentumRetention;
+    _isGrounded = false;
+    _wasOnGround = false;
+    _coyoteTimer = 0;
     gravityDirection = nextDirection;
     scale.y = gravityDirection.toDouble();
     onGravityDirectionChanged?.call(gravityDirection);
