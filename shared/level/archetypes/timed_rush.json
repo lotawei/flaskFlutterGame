@@ -1,0 +1,28 @@
+{
+  "archetype_id": "timed_rush",
+  "name": "限时冲关",
+  "tagline": "倒计时压迫感，越快三星越高",
+  "core_loop": "读秒压力 → 风险路线取舍 → 冲线抢时间",
+  "differentiation": "同一地图可反复刷星，适合赛季挑战榜",
+  "default_mechanics": [
+    { "type": "time_limit", "params": { "seconds": 90, "warn_at": 15 } }
+  ],
+  "default_win_rules": [
+    { "type": "reach_goal", "params": {} }
+  ],
+  "default_star_rules": [
+    { "star": 1, "condition": "clear", "params": {} },
+    { "star": 2, "condition": "time_under", "params": { "seconds": 60 } },
+    { "star": 3, "condition": "time_under", "params": { "seconds": 45 } }
+  ],
+  "default_monetization_hooks": [
+    { "slot": "revive_on_fail", "enabled": true },
+    { "slot": "hint_reveal", "enabled": true },
+    { "slot": "season_bonus", "enabled": true }
+  ],
+  "designer_knobs": {
+    "time_budget_sec": "45-120",
+    "shortcut_risk": "高",
+    "session_length_target_sec": "45-90"
+  }
+}

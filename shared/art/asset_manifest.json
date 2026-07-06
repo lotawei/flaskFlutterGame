@@ -1,0 +1,65 @@
+{
+  "version": "1.0.0",
+  "tile_size": 32,
+  "palette": {
+    "sky": "#B3E5FC",
+    "ground": "#66BB6A",
+    "platform": "#8D6E63",
+    "outline": "#1A1A1A",
+    "player": "#7C4DFF",
+    "coin": "#FFD54F",
+    "coin_shine": "#FFF59D",
+    "flag_pole": "#424242",
+    "flag_cloth": "#E91E63",
+    "danger": "#D50000",
+    "victory": "#FF6D00",
+    "bubble_bg": "#FFFDE7"
+  },
+  "assets": [
+    {
+      "id": "player_sheet",
+      "path": "sprites/player/player_sheet.png",
+      "meta": "sprites/player/player_sheet.json",
+      "priority": "P0",
+      "status": "ready"
+    },
+    {
+      "id": "coin_sheet",
+      "path": "sprites/collectibles/coin_sheet.png",
+      "meta": "sprites/collectibles/coin_sheet.json",
+      "priority": "P0",
+      "status": "ready"
+    },
+    {
+      "id": "tile_ground",
+      "path": "sprites/environment/tile_ground.png",
+      "priority": "P0",
+      "status": "ready"
+    },
+    {
+      "id": "tile_platform",
+      "path": "sprites/environment/tile_platform.png",
+      "priority": "P0",
+      "status": "ready"
+    },
+    {
+      "id": "goal_flag",
+      "path": "sprites/collectibles/goal_flag.png",
+      "priority": "P0",
+      "status": "ready"
+    },
+    {
+      "id": "bg_sky",
+      "path": "backgrounds/bg_sky.png",
+      "priority": "P0",
+      "status": "ready"
+    },
+    {
+      "id": "enemy_basic_sheet",
+      "path": "sprites/enemies/enemy_basic_sheet.png",
+      "meta": "sprites/enemies/enemy_basic_sheet.json",
+      "priority": "P1",
+      "status": "ready"
+    }
+  ]
+}

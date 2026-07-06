@@ -1,0 +1,44 @@
+{
+  "schema_version": 2,
+  "level_id": "timed_rush_demo",
+  "name": "读秒冲刺 · Demo",
+  "archetype": "timed_rush",
+  "meme_theme": "deadline_panic",
+  "difficulty": "normal",
+  "tile_size": 32,
+  "width_tiles": 50,
+  "height_tiles": 15,
+  "player_spawn": { "x": 2, "y": 11 },
+  "platforms": [
+    { "x": 0, "y": 13, "w": 12, "h": 2 },
+    { "x": 14, "y": 10, "w": 5, "h": 1 },
+    { "x": 22, "y": 9, "w": 4, "h": 1 },
+    { "x": 30, "y": 8, "w": 5, "h": 1 },
+    { "x": 38, "y": 10, "w": 10, "h": 1 },
+    { "x": 0, "y": 14, "w": 50, "h": 1 }
+  ],
+  "coins": [
+    { "x": 16, "y": 9 },
+    { "x": 24, "y": 8 },
+    { "x": 33, "y": 7 },
+    { "x": 42, "y": 9 }
+  ],
+  "enemies": [
+    { "x": 31, "y": 7, "patrol_left": 1, "patrol_right": 2 }
+  ],
+  "goal": { "x": 46, "y": 9 },
+  "mechanics": [
+    { "type": "time_limit", "params": { "seconds": 60, "warn_at": 15 } }
+  ],
+  "win_rules": [{ "type": "reach_goal", "params": {} }],
+  "star_rules": [
+    { "star": 1, "condition": "clear", "params": {} },
+    { "star": 2, "condition": "time_under", "params": { "seconds": 45 } },
+    { "star": 3, "condition": "time_under", "params": { "seconds": 30 } }
+  ],
+  "monetization_hooks": [
+    { "slot": "revive_on_fail", "enabled": true },
+    { "slot": "hint_reveal", "enabled": true }
+  ],
+  "tip_text": "60 秒内冲到终点！剩 15 秒开始读秒警告。"
+}

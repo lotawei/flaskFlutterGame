@@ -1,0 +1,51 @@
+{
+  "schema_version": 2,
+  "level_id": "demo_haqi",
+  "name": "哈基高原 · 新手关",
+  "archetype": "rush_standard",
+  "meme_theme": "haqi_highland",
+  "difficulty": "easy",
+  "tile_size": 32,
+  "width_tiles": 80,
+  "height_tiles": 15,
+  "player_spawn": { "x": 2, "y": 11 },
+  "platforms": [
+    { "x": 0, "y": 13, "w": 24, "h": 2 },
+    { "x": 18, "y": 12, "w": 7, "h": 1 },
+    { "x": 20, "y": 11, "w": 7, "h": 1 },
+    { "x": 28, "y": 10, "w": 4, "h": 1 },
+    { "x": 34, "y": 9, "w": 4, "h": 1 },
+    { "x": 40, "y": 10, "w": 6, "h": 1 },
+    { "x": 48, "y": 9, "w": 5, "h": 1 },
+    { "x": 55, "y": 10, "w": 5, "h": 1 },
+    { "x": 62, "y": 11, "w": 18, "h": 2 },
+    { "x": 0, "y": 14, "w": 80, "h": 1 }
+  ],
+  "coins": [
+    { "x": 8, "y": 12 },
+    { "x": 12, "y": 12 },
+    { "x": 23, "y": 10 },
+    { "x": 30, "y": 9 },
+    { "x": 42, "y": 9 },
+    { "x": 50, "y": 8 },
+    { "x": 66, "y": 10 },
+    { "x": 72, "y": 10 }
+  ],
+  "enemies": [
+    { "x": 26, "y": 10, "patrol_left": 1, "patrol_right": 2 },
+    { "x": 44, "y": 9, "patrol_left": 1, "patrol_right": 2 },
+    { "x": 58, "y": 10, "patrol_left": 1, "patrol_right": 2 }
+  ],
+  "goal": { "x": 74, "y": 9 },
+  "win_rules": [{ "type": "reach_goal", "params": {} }],
+  "star_rules": [
+    { "star": 1, "condition": "clear", "params": {} },
+    { "star": 2, "condition": "coins_ratio", "params": { "ratio": 0.5 } },
+    { "star": 3, "condition": "defeat_all_enemies", "params": {} }
+  ],
+  "monetization_hooks": [
+    { "slot": "revive_on_fail", "enabled": true },
+    { "slot": "double_coins", "enabled": true }
+  ],
+  "tip_text": "← → 移动，「跳」起跳，到最右边旗帜就赢！金币能捡就捡～"
+}

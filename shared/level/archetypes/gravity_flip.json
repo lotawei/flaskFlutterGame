@@ -1,0 +1,25 @@
+{
+  "archetype_id": "gravity_flip",
+  "name": "重力反转",
+  "tagline": "上下半区重力相反，倒挂走天花板",
+  "core_loop": "进区翻转→天花板平台→找出口",
+  "reference_games": ["ibb & obb", "VVVVVV"],
+  "default_mechanics": [
+    { "type": "gravity_flip", "params": { "default_gravity": "down" } }
+  ],
+  "default_win_rules": [{ "type": "reach_goal", "params": {} }],
+  "default_star_rules": [
+    { "star": 1, "condition": "clear", "params": {} },
+    { "star": 2, "condition": "coins_ratio", "params": { "ratio": 0.5 } },
+    { "star": 3, "condition": "no_damage", "params": {} }
+  ],
+  "default_monetization_hooks": [
+    { "slot": "hint_reveal", "enabled": true },
+    { "slot": "revive_on_fail", "enabled": true }
+  ],
+  "level_authoring_notes": {
+    "gravity_zones": "至少 2 个分区，gravity 取 up/down，参考 ibb & obb 粉/绿半区",
+    "platforms": "上区设计天花板平台（玩家站在平台底面），下区常规地面",
+    "transition": "中间留跳跃过渡，让玩家中心点进入另一分区时翻转重力"
+  }
+}

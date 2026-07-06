@@ -1,0 +1,55 @@
+{
+  "schema_version": 2,
+  "level_id": "gravity_flip_demo",
+  "name": "颠倒隧道 · 重力反转",
+  "archetype": "gravity_flip",
+  "meme_theme": "ibb_tunnel",
+  "difficulty": "normal",
+  "tile_size": 32,
+  "width_tiles": 62,
+  "height_tiles": 15,
+  "player_spawn": { "x": 2, "y": 12 },
+  "gravity_zones": [
+    { "x": 0, "y": 0, "w": 62, "h": 7, "gravity": "down" },
+    { "x": 0, "y": 7, "w": 62, "h": 8, "gravity": "up" }
+  ],
+  "platforms": [
+    { "x": 50, "y": 1, "w": 10, "h": 1 },
+    { "x": 42, "y": 3, "w": 5, "h": 1 },
+    { "x": 34, "y": 4, "w": 5, "h": 1 },
+    { "x": 26, "y": 5, "w": 6, "h": 1 },
+    { "x": 20, "y": 6, "w": 10, "h": 1 },
+    { "x": 0, "y": 12, "w": 16, "h": 1 },
+    { "x": 18, "y": 11, "w": 4, "h": 1 },
+    { "x": 24, "y": 10, "w": 4, "h": 1 },
+    { "x": 30, "y": 9, "w": 5, "h": 1 },
+    { "x": 36, "y": 8, "w": 6, "h": 1 },
+    { "x": 22, "y": 7, "w": 24, "h": 1 }
+  ],
+  "coins": [
+    { "x": 8, "y": 11 },
+    { "x": 26, "y": 9 },
+    { "x": 36, "y": 7 },
+    { "x": 38, "y": 4 },
+    { "x": 54, "y": 0 }
+  ],
+  "enemies": [
+    { "x": 32, "y": 8, "patrol_left": 1, "patrol_right": 2 }
+  ],
+  "goal": { "x": 54, "y": 0 },
+  "mechanics": [
+    { "type": "gravity_flip", "params": { "default_gravity": "up" } }
+  ],
+  "win_rules": [{ "type": "reach_goal", "params": {} }],
+  "star_rules": [
+    { "star": 1, "condition": "clear", "params": {} },
+    { "star": 2, "condition": "coins_ratio", "params": { "ratio": 0.6 } },
+    { "star": 3, "condition": "no_damage", "params": {} }
+  ],
+  "monetization_hooks": [
+    { "slot": "hint_reveal", "enabled": true },
+    { "slot": "revive_on_fail", "enabled": true }
+  ],
+  "tip_text": "ibb & obb 风格：上区重力向下走地板，下区重力向上走天花板。从中间分界线跃入上区时动量会翻转！",
+  "designer_notes": "上区 y=0-6 重力 down；下区 y=7-14 重力 up。y=7 平台为分界线过渡，跳下/跳上穿越时保留动量。"
+}

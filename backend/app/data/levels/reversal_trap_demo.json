@@ -1,0 +1,44 @@
+{
+  "schema_version": 2,
+  "level_id": "reversal_trap_demo",
+  "name": "假旗反转 · Demo",
+  "archetype": "reversal_trap",
+  "meme_theme": "plot_twist",
+  "difficulty": "normal",
+  "tile_size": 32,
+  "width_tiles": 55,
+  "height_tiles": 15,
+  "player_spawn": { "x": 2, "y": 11 },
+  "platforms": [
+    { "x": 0, "y": 13, "w": 14, "h": 2 },
+    { "x": 16, "y": 10, "w": 6, "h": 1 },
+    { "x": 26, "y": 9, "w": 8, "h": 1 },
+    { "x": 38, "y": 11, "w": 15, "h": 2 },
+    { "x": 0, "y": 14, "w": 55, "h": 1 }
+  ],
+  "coins": [
+    { "x": 18, "y": 9 },
+    { "x": 30, "y": 8 },
+    { "x": 42, "y": 10 }
+  ],
+  "enemies": [
+    { "x": 28, "y": 8, "patrol_left": 2, "patrol_right": 3 }
+  ],
+  "fake_goals": [{ "x": 20, "y": 9 }],
+  "goal": { "x": 50, "y": 9 },
+  "mechanics": [
+    { "type": "reversal_fake_goal", "params": { "fake_goal_fail": true } }
+  ],
+  "win_rules": [
+    { "type": "reach_goal", "params": { "must_be_real_goal": true } }
+  ],
+  "star_rules": [
+    { "star": 1, "condition": "clear", "params": {} },
+    { "star": 2, "condition": "no_damage", "params": {} },
+    { "star": 3, "condition": "coins_ratio", "params": { "ratio": 1.0 } }
+  ],
+  "monetization_hooks": [
+    { "slot": "hint_reveal", "enabled": true }
+  ],
+  "tip_text": "前面那面旗可能是假的…真终点在更远处！"
+}

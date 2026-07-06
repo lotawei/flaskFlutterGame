@@ -1,0 +1,25 @@
+{
+  "archetype_id": "rush_standard",
+  "name": "标准冲关",
+  "tagline": "跑到终点就赢，踩头消灭敌人",
+  "core_loop": "移动 → 跳跃 → 收金币 → 踩敌人 → 到旗",
+  "differentiation": "最低学习成本，适合新手关与梗包首关",
+  "default_mechanics": [],
+  "default_win_rules": [
+    { "type": "reach_goal", "params": {} }
+  ],
+  "default_star_rules": [
+    { "star": 1, "condition": "clear", "params": {} },
+    { "star": 2, "condition": "coins_ratio", "params": { "ratio": 0.6 } },
+    { "star": 3, "condition": "defeat_all_enemies", "params": {} }
+  ],
+  "default_monetization_hooks": [
+    { "slot": "revive_on_fail", "enabled": true },
+    { "slot": "double_coins", "enabled": true }
+  ],
+  "designer_knobs": {
+    "enemy_density": "低-中",
+    "coin_placement": "主路径+少量支路",
+    "session_length_target_sec": "60-120"
+  }
+}

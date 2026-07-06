@@ -1,0 +1,34 @@
+{
+  "archetype_id": "greed_tax",
+  "name": "来财税局",
+  "tagline": "金币越多怪越强，贪或不贪都是策略",
+  "core_loop": "收币 → 难度上升 → 取舍路线 → 冲线",
+  "differentiation": "经济博弈感，与 Hybrid 变现（双倍币）强绑定",
+  "default_mechanics": [
+    {
+      "type": "coin_greed_scale",
+      "params": {
+        "enemy_speed_per_coin": 2,
+        "tax_zone_after_coins": 4
+      }
+    }
+  ],
+  "default_win_rules": [
+    { "type": "reach_goal", "params": {} }
+  ],
+  "default_star_rules": [
+    { "star": 1, "condition": "clear", "params": {} },
+    { "star": 2, "condition": "coins_ratio", "params": { "ratio": 0.5 } },
+    { "star": 3, "condition": "coins_ratio", "params": { "ratio": 1.0 } }
+  ],
+  "default_monetization_hooks": [
+    { "slot": "double_coins", "enabled": true },
+    { "slot": "skip_hard_section", "enabled": true },
+    { "slot": "revive_on_fail", "enabled": true }
+  ],
+  "designer_knobs": {
+    "coin_temptation": "高",
+    "safe_route_exists": "必须有",
+    "session_length_target_sec": "90-150"
+  }
+}

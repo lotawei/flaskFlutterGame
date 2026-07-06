@@ -1,0 +1,56 @@
+{
+  "schema_version": 2,
+  "level_id": "greed_tax_demo",
+  "name": "来财税局 · Demo",
+  "archetype": "greed_tax",
+  "meme_theme": "tax_bureau",
+  "difficulty": "hard",
+  "tile_size": 32,
+  "width_tiles": 60,
+  "height_tiles": 15,
+  "player_spawn": { "x": 2, "y": 11 },
+  "platforms": [
+    { "x": 0, "y": 13, "w": 16, "h": 2 },
+    { "x": 18, "y": 10, "w": 6, "h": 1 },
+    { "x": 28, "y": 9, "w": 8, "h": 1 },
+    { "x": 40, "y": 10, "w": 8, "h": 1 },
+    { "x": 52, "y": 11, "w": 8, "h": 2 },
+    { "x": 0, "y": 14, "w": 60, "h": 1 }
+  ],
+  "coins": [
+    { "x": 12, "y": 12 },
+    { "x": 14, "y": 12 },
+    { "x": 20, "y": 9 },
+    { "x": 22, "y": 9 },
+    { "x": 30, "y": 8 },
+    { "x": 32, "y": 8 },
+    { "x": 34, "y": 8 },
+    { "x": 42, "y": 9 },
+    { "x": 55, "y": 10 }
+  ],
+  "enemies": [
+    { "x": 29, "y": 8, "patrol_left": 2, "patrol_right": 4 },
+    { "x": 43, "y": 9, "patrol_left": 1, "patrol_right": 3 }
+  ],
+  "goal": { "x": 56, "y": 9 },
+  "mechanics": [
+    {
+      "type": "coin_greed_scale",
+      "params": {
+        "enemy_speed_per_coin": 2,
+        "tax_zone_after_coins": 4
+      }
+    }
+  ],
+  "win_rules": [{ "type": "reach_goal", "params": {} }],
+  "star_rules": [
+    { "star": 1, "condition": "clear", "params": {} },
+    { "star": 2, "condition": "coins_ratio", "params": { "ratio": 0.5 } },
+    { "star": 3, "condition": "coins_ratio", "params": { "ratio": 1.0 } }
+  ],
+  "monetization_hooks": [
+    { "slot": "double_coins", "enabled": true },
+    { "slot": "skip_hard_section", "enabled": true }
+  ],
+  "tip_text": "金币越多敌人越快——贪可以，但要付税。引擎机制 P2 实装中。"
+}
