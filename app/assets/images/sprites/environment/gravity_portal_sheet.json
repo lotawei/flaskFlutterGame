@@ -13,5 +13,6 @@
       "fps": 8,
       "loop": true
     }
-  }
+  },
+  "source": "blender_bake"
 }

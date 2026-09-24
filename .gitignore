@@ -118,10 +118,8 @@ celerybeat.pid
 .venv/
 venv/
 
-# Flutter
-app/.dart_tool/
-app/build/
-app/.flutter-plugins-dependencies
+# Blender bake intermediates
+app/assets/images/_bake_tmp/
 
 # Python
 backend/.venv/

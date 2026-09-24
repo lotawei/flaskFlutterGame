@@ -47,4 +47,4 @@ python scripts/validate_art_assets.py
 
 - 梗皮肤 doge/wojak 玩家变体
 - 彩虹平台 / 分色站立砖
-- Blender 烘焙管线（需接入 Blender MCP）：3D 模型 → 正交渲染 → 像素降采样
+- **Blender 管线已通**：`bash scripts/blender/run_bake.sh`；本机 MCP 见 `docs/blender-mcp-pipeline.md`

@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "tile_size": 32,
   "palette": {
     "sky": "#B3E5FC",
@@ -102,6 +102,13 @@
       "path": "ui/banners/ui_result_banner.png",
       "priority": "P1",
       "status": "ready"
+    },
+    {
+      "id": "coin_blender",
+      "path": "sprites/collectibles/coin_blender.png",
+      "priority": "P2",
+      "status": "ready",
+      "source": "blender_bake"
     }
   ]
 }
