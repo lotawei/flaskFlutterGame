@@ -1,0 +1,17 @@
+{
+  "sheet": "fx_coin_burst_sheet.png",
+  "frameWidth": 24,
+  "frameHeight": 24,
+  "anchor": {
+    "x": 0.5,
+    "y": 0.5
+  },
+  "animations": {
+    "burst": {
+      "row": 0,
+      "frameCount": 4,
+      "fps": 14,
+      "loop": false
+    }
+  }
+}

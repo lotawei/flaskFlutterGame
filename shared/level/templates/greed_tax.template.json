@@ -1,0 +1,33 @@
+{
+  "schema_version": 2,
+  "level_id": "REPLACE_level_id",
+  "name": "REPLACE_关卡名",
+  "archetype": "greed_tax",
+  "meme_theme": "REPLACE_梗主题",
+  "difficulty": "hard",
+  "tile_size": 32,
+  "width_tiles": 40,
+  "height_tiles": 15,
+  "player_spawn": { "x": 2, "y": 11 },
+  "platforms": [
+    { "x": 0, "y": 13, "w": 10, "h": 2 },
+    { "x": 0, "y": 14, "w": 40, "h": 1 }
+  ],
+  "coins": [
+    { "x": 8, "y": 12 },
+    { "x": 10, "y": 12 },
+    { "x": 20, "y": 11 }
+  ],
+  "enemies": [
+    { "x": 22, "y": 10, "patrol_left": 1, "patrol_right": 2 }
+  ],
+  "goal": { "x": 36, "y": 11 },
+  "mechanics": [
+    {
+      "type": "coin_greed_scale",
+      "params": { "enemy_speed_per_coin": 2, "tax_zone_after_coins": 4 }
+    }
+  ],
+  "win_rules": [{ "type": "reach_goal", "params": {} }],
+  "tip_text": "REPLACE_贪币提示"
+}

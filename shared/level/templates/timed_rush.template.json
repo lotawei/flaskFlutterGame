@@ -1,0 +1,29 @@
+{
+  "schema_version": 2,
+  "level_id": "REPLACE_level_id",
+  "name": "REPLACE_关卡名",
+  "archetype": "timed_rush",
+  "meme_theme": "REPLACE_梗主题",
+  "difficulty": "normal",
+  "tile_size": 32,
+  "width_tiles": 40,
+  "height_tiles": 15,
+  "player_spawn": { "x": 2, "y": 11 },
+  "platforms": [
+    { "x": 0, "y": 13, "w": 10, "h": 2 },
+    { "x": 0, "y": 14, "w": 40, "h": 1 }
+  ],
+  "coins": [],
+  "enemies": [],
+  "goal": { "x": 36, "y": 11 },
+  "mechanics": [
+    { "type": "time_limit", "params": { "seconds": 90, "warn_at": 15 } }
+  ],
+  "win_rules": [{ "type": "reach_goal", "params": {} }],
+  "star_rules": [
+    { "star": 1, "condition": "clear", "params": {} },
+    { "star": 2, "condition": "time_under", "params": { "seconds": 60 } },
+    { "star": 3, "condition": "time_under", "params": { "seconds": 45 } }
+  ],
+  "tip_text": "REPLACE_限时提示"
+}

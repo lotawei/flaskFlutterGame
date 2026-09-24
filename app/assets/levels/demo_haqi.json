@@ -1,0 +1,46 @@
+{
+  "schema_version": 2,
+  "level_id": "demo_haqi",
+  "name": "哈基高原 · Demo",
+  "archetype": "rush_standard",
+  "meme_theme": "haqi_highland",
+  "difficulty": "normal",
+  "tile_size": 32,
+  "width_tiles": 80,
+  "height_tiles": 15,
+  "player_spawn": { "x": 2, "y": 11 },
+  "platforms": [
+    { "x": 0, "y": 13, "w": 18, "h": 2 },
+    { "x": 16, "y": 10, "w": 6, "h": 1 },
+    { "x": 26, "y": 9, "w": 5, "h": 1 },
+    { "x": 34, "y": 8, "w": 4, "h": 1 },
+    { "x": 42, "y": 10, "w": 8, "h": 1 },
+    { "x": 54, "y": 8, "w": 6, "h": 1 },
+    { "x": 64, "y": 11, "w": 16, "h": 2 },
+    { "x": 0, "y": 14, "w": 80, "h": 1 }
+  ],
+  "coins": [
+    { "x": 18, "y": 9 },
+    { "x": 28, "y": 8 },
+    { "x": 36, "y": 7 },
+    { "x": 46, "y": 9 },
+    { "x": 57, "y": 7 },
+    { "x": 70, "y": 10 }
+  ],
+  "enemies": [
+    { "x": 19, "y": 9, "patrol_left": 1, "patrol_right": 3 },
+    { "x": 45, "y": 9, "patrol_left": 2, "patrol_right": 4 }
+  ],
+  "goal": { "x": 76, "y": 9 },
+  "win_rules": [{ "type": "reach_goal", "params": {} }],
+  "star_rules": [
+    { "star": 1, "condition": "clear", "params": {} },
+    { "star": 2, "condition": "coins_ratio", "params": { "ratio": 0.6 } },
+    { "star": 3, "condition": "defeat_all_enemies", "params": {} }
+  ],
+  "monetization_hooks": [
+    { "slot": "revive_on_fail", "enabled": true },
+    { "slot": "double_coins", "enabled": true }
+  ],
+  "tip_text": "踩敌人头顶可消灭！侧面碰到会失败。收集金币搞更多事～"
+}
