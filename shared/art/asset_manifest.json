@@ -1,5 +1,5 @@
 {
-  "version": "1.2.0",
+  "version": "1.2.1",
   "tile_size": 32,
   "palette": {
     "sky": "#B3E5FC",
@@ -106,6 +106,13 @@
     {
       "id": "coin_blender",
       "path": "sprites/collectibles/coin_blender.png",
+      "priority": "P2",
+      "status": "ready",
+      "source": "blender_bake"
+    },
+    {
+      "id": "enemy_blender",
+      "path": "sprites/enemies/enemy_blender.png",
       "priority": "P2",
       "status": "ready",
       "source": "blender_bake"
