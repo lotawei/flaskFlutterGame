@@ -1,0 +1,27 @@
+{
+  "schema_version": 2,
+  "level_id": "REPLACE_level_id",
+  "name": "REPLACE_关卡名",
+  "archetype": "reversal_trap",
+  "meme_theme": "REPLACE_梗主题",
+  "difficulty": "normal",
+  "tile_size": 32,
+  "width_tiles": 40,
+  "height_tiles": 15,
+  "player_spawn": { "x": 2, "y": 11 },
+  "platforms": [
+    { "x": 0, "y": 13, "w": 10, "h": 2 },
+    { "x": 0, "y": 14, "w": 40, "h": 1 }
+  ],
+  "coins": [],
+  "enemies": [],
+  "fake_goals": [{ "x": 18, "y": 11 }],
+  "goal": { "x": 36, "y": 11 },
+  "mechanics": [
+    { "type": "reversal_fake_goal", "params": { "fake_goal_fail": true } }
+  ],
+  "win_rules": [
+    { "type": "reach_goal", "params": { "must_be_real_goal": true } }
+  ],
+  "tip_text": "REPLACE_反转提示"
+}

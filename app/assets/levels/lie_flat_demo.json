@@ -1,0 +1,47 @@
+{
+  "schema_version": 2,
+  "level_id": "lie_flat_demo",
+  "name": "躺平计量 · Demo",
+  "archetype": "lie_flat",
+  "meme_theme": "lie_flat_culture",
+  "difficulty": "normal",
+  "tile_size": 32,
+  "width_tiles": 50,
+  "height_tiles": 15,
+  "player_spawn": { "x": 2, "y": 11 },
+  "platforms": [
+    { "x": 0, "y": 13, "w": 12, "h": 2 },
+    { "x": 14, "y": 11, "w": 4, "h": 1 },
+    { "x": 22, "y": 10, "w": 6, "h": 1 },
+    { "x": 32, "y": 11, "w": 4, "h": 1 },
+    { "x": 40, "y": 10, "w": 8, "h": 1 },
+    { "x": 0, "y": 14, "w": 50, "h": 1 }
+  ],
+  "coins": [
+    { "x": 16, "y": 10 },
+    { "x": 25, "y": 9 },
+    { "x": 44, "y": 9 }
+  ],
+  "enemies": [],
+  "goal": { "x": 46, "y": 9 },
+  "mechanics": [
+    {
+      "type": "lie_flat_meter",
+      "params": {
+        "drain_per_sec_moving": 8,
+        "recover_per_sec_idle": 12,
+        "fail_at_zero": true
+      }
+    }
+  ],
+  "win_rules": [{ "type": "reach_goal", "params": {} }],
+  "star_rules": [
+    { "star": 1, "condition": "clear", "params": {} },
+    { "star": 2, "condition": "time_under", "params": { "seconds": 90 } },
+    { "star": 3, "condition": "no_damage", "params": {} }
+  ],
+  "monetization_hooks": [
+    { "slot": "revive_on_fail", "enabled": true }
+  ],
+  "tip_text": "移动会掉「面子」，停下可回血——走停走停才是躺平之道。引擎机制 P2 实装中。"
+}
