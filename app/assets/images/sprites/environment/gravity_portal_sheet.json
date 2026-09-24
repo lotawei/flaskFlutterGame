@@ -1,0 +1,17 @@
+{
+  "sheet": "gravity_portal_sheet.png",
+  "frameWidth": 32,
+  "frameHeight": 32,
+  "anchor": {
+    "x": 0.5,
+    "y": 0.5
+  },
+  "animations": {
+    "pulse": {
+      "row": 0,
+      "frameCount": 4,
+      "fps": 8,
+      "loop": true
+    }
+  }
+}

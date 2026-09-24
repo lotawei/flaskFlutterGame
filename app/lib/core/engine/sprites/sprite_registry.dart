@@ -26,9 +26,15 @@ class SpriteRegistry {
       'sprites/collectibles/coin_sheet.png',
       'sprites/environment/tile_ground.png',
       'sprites/environment/tile_platform.png',
+      'sprites/environment/tile_ceiling.png',
+      'sprites/environment/gravity_portal_sheet.png',
       'sprites/collectibles/goal_flag.png',
       'sprites/enemies/enemy_basic_sheet.png',
+      'sprites/fx/fx_dust_sheet.png',
+      'sprites/fx/fx_coin_burst_sheet.png',
       'backgrounds/bg_sky.png',
+      'ui/bubbles/ui_meme_bubble.png',
+      'ui/banners/ui_result_banner.png',
     ];
     for (final String path in imagePaths) {
       await Flame.images.load(path);
@@ -42,6 +48,15 @@ class SpriteRegistry {
     );
     _metaMap['enemy'] = await _loadMeta(
       '${_bundleRoot}sprites/enemies/enemy_basic_sheet.json',
+    );
+    _metaMap['gravity_portal'] = await _loadMeta(
+      '${_bundleRoot}sprites/environment/gravity_portal_sheet.json',
+    );
+    _metaMap['fx_dust'] = await _loadMeta(
+      '${_bundleRoot}sprites/fx/fx_dust_sheet.json',
+    );
+    _metaMap['fx_coin_burst'] = await _loadMeta(
+      '${_bundleRoot}sprites/fx/fx_coin_burst_sheet.json',
     );
     _isLoaded = true;
   }
@@ -65,11 +80,29 @@ class SpriteRegistry {
     if (path.contains('tile_platform')) {
       return 'tile_platform';
     }
+    if (path.contains('tile_ceiling')) {
+      return 'tile_ceiling';
+    }
+    if (path.contains('gravity_portal')) {
+      return 'gravity_portal';
+    }
     if (path.contains('goal_flag')) {
       return 'goal_flag';
     }
     if (path.contains('bg_sky')) {
       return 'bg_sky';
+    }
+    if (path.contains('fx_dust')) {
+      return 'fx_dust';
+    }
+    if (path.contains('fx_coin_burst')) {
+      return 'fx_coin_burst';
+    }
+    if (path.contains('ui_meme_bubble')) {
+      return 'ui_meme_bubble';
+    }
+    if (path.contains('ui_result_banner')) {
+      return 'ui_result_banner';
     }
     return path;
   }

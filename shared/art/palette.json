@@ -1,0 +1,35 @@
+{
+  "version": "1.1.0",
+  "outline": "#1A1A1A",
+  "colors": {
+    "sky": "#B3E5FC",
+    "sky_bottom": "#E1F5FE",
+    "ground": "#66BB6A",
+    "ground_highlight": "#81C784",
+    "platform": "#8D6E63",
+    "platform_highlight": "#A1887F",
+    "ceiling": "#F48FB1",
+    "ceiling_highlight": "#F8BBD0",
+    "player": "#7C4DFF",
+    "coin": "#FFD54F",
+    "coin_shine": "#FFF59D",
+    "flag_pole": "#424242",
+    "flag_cloth": "#E91E63",
+    "enemy": "#EF5350",
+    "enemy_eye": "#FFFDE7",
+    "danger": "#D50000",
+    "victory": "#FF6D00",
+    "bubble_bg": "#FFFDE7",
+    "portal": "#FFFFFF",
+    "portal_glow": "#E1BEE7",
+    "gravity_up_tint": "#F8BBD0",
+    "gravity_down_tint": "#90CAF9",
+    "dust": "#BCAAA4",
+    "ui_btn": "#FFECB3"
+  },
+  "rules": [
+    "禁止抗锯齿，像素 nearest neighbor",
+    "强制 1px #1A1A1A 描边",
+    "禁止引入调色板外颜色（高光/阴影可用同色系 ±20）"
+  ]
+}

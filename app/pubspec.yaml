@@ -76,7 +76,11 @@ flutter:
     - assets/images/sprites/collectibles/
     - assets/images/sprites/environment/
     - assets/images/sprites/enemies/
+    - assets/images/sprites/fx/
+    - assets/images/backgrounds/
     - assets/images/ui/buttons/
+    - assets/images/ui/bubbles/
+    - assets/images/ui/banners/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

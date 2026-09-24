@@ -2,8 +2,16 @@
   "sheet": "enemy_basic_sheet.png",
   "frameWidth": 28,
   "frameHeight": 28,
-  "anchor": { "x": 0.5, "y": 1.0 },
+  "anchor": {
+    "x": 0.5,
+    "y": 1.0
+  },
   "animations": {
-    "walk": { "row": 0, "frameCount": 4, "fps": 8, "loop": true }
+    "walk": {
+      "row": 0,
+      "frameCount": 4,
+      "fps": 8,
+      "loop": true
+    }
   }
 }

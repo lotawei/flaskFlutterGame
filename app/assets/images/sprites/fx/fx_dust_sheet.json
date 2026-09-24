@@ -1,0 +1,17 @@
+{
+  "sheet": "fx_dust_sheet.png",
+  "frameWidth": 16,
+  "frameHeight": 16,
+  "anchor": {
+    "x": 0.5,
+    "y": 1.0
+  },
+  "animations": {
+    "puff": {
+      "row": 0,
+      "frameCount": 4,
+      "fps": 12,
+      "loop": false
+    }
+  }
+}

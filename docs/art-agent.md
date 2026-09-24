@@ -91,9 +91,9 @@ scripts/
 
 | 批次 | 资产 | 负责 Agent | 状态 |
 |------|------|-----------|------|
-| P0 | player/coin/tile/goal | Art + Engine | 🔄 进行中 |
-| P1 | 敌人、粒子、结算横幅、梗气泡 | Art | 待启动 |
-| P2 | 梗皮肤 doge/wojak、彩虹平台 | Art | 待启动 |
+| P0 | player/coin/tile/goal | Art + Engine | ✅ 已完成 |
+| P1 | 敌人、粒子、结算横幅、梗气泡、天花板、重力光圈 | Art + Engine 注册 | ✅ 素材已产出 |
+| P2 | 梗皮肤 doge/wojak、彩虹平台、Blender 烘焙 | Art | 待启动（需 Blender MCP） |
 
 ---
 

@@ -19,6 +19,18 @@
 | goal_flag | sprites/collectibles/ | 终点旗 |
 | bg_sky | backgrounds/ | 平铺天空 |
 
+## P1 资产（已产出，引擎已注册）
+
+| 资产 | 路径 | 用途 |
+|------|------|------|
+| tile_ceiling | sprites/environment/ | 倒挂天花板砖（粉） |
+| gravity_portal_sheet | sprites/environment/ | 重力分界光圈脉冲 |
+| enemy_basic_sheet | sprites/enemies/ | 尖刺巡逻敌人 |
+| fx_dust_sheet | sprites/fx/ | 落地尘土 |
+| fx_coin_burst_sheet | sprites/fx/ | 拾币粒子 |
+| ui_meme_bubble | ui/bubbles/ | 梗文气泡底板 |
+| ui_result_banner | ui/banners/ | 结算横幅 |
+
 ## 动画规格
 
 见各目录下 `.json` 元数据（row、frameCount、fps、loop、anchor）。
@@ -27,12 +39,12 @@
 
 ```bash
 python scripts/generate_p0_sprites.py
+python scripts/generate_p1_sprites.py
 python scripts/validate_art_assets.py
 ```
 
-## 下一步 P1
+## 下一步 P2
 
-- 敌人 patrol 动画
-- 金币收集粒子、落地尘土
-- 结算横幅、梗文气泡 9-patch
-- 触控按钮像素皮肤
+- 梗皮肤 doge/wojak 玩家变体
+- 彩虹平台 / 分色站立砖
+- Blender 烘焙管线（需接入 Blender MCP）：3D 模型 → 正交渲染 → 像素降采样
